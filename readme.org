@@ -1,0 +1,160 @@
+#+TITLE: NixOS Mobile Tutorial for OnePlus 6 (enchilada)
+#+AUTHOR: Your Name
+#+DATE: 2024
+#+OPTIONS: toc:t num:t
+#+PROPERTY: header-args:sh :session *nixos-mobile*
+
+* Overview
+
+This tutorial guides you through installing NixOS Mobile on a OnePlus 6 (enchilada) device. The process involves building a minimal base image using the local.nix file (with fixes to make it build on x86 machines), flashing it to your device, then rebuilding on the phone itself with the full configuration.nix and flake method we're all used to in the NixOS ecosystem.
+
+* Clone Your Configuration Repository
+
+First, clone or download this nixos-mobile repository to get you started with a minimal config to build:
+
+#+begin_src sh
+git clone https://github.com/mwlaboratories/nixos-mobile.git
+cd nixos-mobile
+#+end_src
+
+* Build Flashable Images
+
+We will import the official mobile-nixos repo to build from. It will be a folder `mobile-nixos` under our nixos-mobile project directory. After building, we can delete it as it is only needed to build our base image for one-time use:
+
+#+begin_src sh
+git clone git@github.com:mobile-nixos/mobile-nixos.git
+cd mobile-nixos
+cp ../local.nix .
+nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
+#+end_src
+
+* Prepare the Phone
+
+** Update OxygenOS
+1. Update OxygenOS to the latest official version
+2. Remove all Google accounts to avoid FRP (Factory Reset Protection) blocks
+
+** Enable Developer Options
+1. Go to Settings → About Phone
+2. Tap "Build Number" 7 times
+3. Go back to Settings → Developer Options
+4. Enable "USB Debugging"
+5. Enable "OEM Unlocking"
+6. Enable "Advanced Reboot"
+
+** Unlock the Bootloader
+
+Open a nix-shell with Android tools:
+
+#+begin_src sh
+nix-shell -p adb-sync android-tools
+#+end_src
+
+Check device connection:
+
+#+begin_src sh
+adb devices
+#+end_src
+
+Reboot to bootloader:
+
+#+begin_src sh
+adb -d reboot bootloader
+#+end_src
+
+Unlock bootloader (this will erase all data!):
+
+#+begin_src sh
+fastboot oem unlock
+#+end_src
+
+⚠️ **Warning**: Unlocking the bootloader will erase all data on your device!
+
+** Copy Partitions (A/B Safety Trick)
+
+In some cases, the inactive slot can be unpopulated or contain much older firmware than the active slot, leading to various issues including a potential hard-brick. We can ensure none of that will happen by copying the contents of the active slot to the inactive slot.
+
+To do this, sideload the copy-partitions-20220613-signed.zip package:
+
+1. On the device, select "Apply Update", then "Apply from ADB" to begin sideload
+2. On the host machine, download and sideload the package:
+
+#+begin_src sh
+wget https://mirrorbits.lineageos.org/tools/copy-partitions-20220613-signed.zip
+adb -d sideload copy-partitions-20220613-signed.zip
+#+end_src
+
+Now reboot to recovery by tapping "Advanced", then "Reboot to recovery".
+
+** Prepare for Mainline
+
+This assumes the phone will only run SDM845 mainline images. You will need to erase the dtbo partitions for both slots:
+
+#+begin_src sh
+fastboot erase dtbo_a
+#+end_src
+
+#+begin_src sh
+fastboot erase dtbo_b
+#+end_src
+
+* Flash Images to Device
+
+Flash the critical partitions:
+
+#+begin_src sh
+./result/flash-critical.sh
+#+end_src
+
+Flash system image:
+
+#+begin_src sh
+fastboot flash userdata system.img
+#+end_src
+
+⚠️ **Note**: If the phone isn't recognized, try connecting it *after* booting into fastboot mode.
+
+* First Boot and Configuration
+
+** SSH into the Phone
+
+NixOS Mobile provides SSH access because we set it up in the local.nix base configuration we've built. Connect to the device:
+
+#+begin_src sh
+ssh root@172.16.42.1
+#+end_src
+
+** Clone Your Configuration Repository
+
+Once connected to the device we will rebuild without using the local.nix but like we're used to on a normal NixOS flake install. Adjust the configuration.nix to your liking, but I would suggest building the included one first. It will boot you into GNOME:
+
+#+begin_src sh
+git clone https://github.com/mwlaboratories/nixos-mobile.git
+cd nixos-mobile
+#+end_src
+
+** Rebuild with Your Flake Configuration
+
+#+begin_src sh
+nixos-rebuild switch --flake .#phoneputer
+#+end_src
+
+* What's Next?
+
+After the rebuild completes, your OnePlus 6 will have:
+- GNOME desktop environment (with bloat removed)
+- SSH access for remote development
+- Your custom package selection
+- Full NixOS declarative configuration
+
+You can now:
+- Customize your configuration.nix further
+- Add more packages or services
+- Rebuild anytime with `nixos-rebuild switch --flake .#phone`
+- Use the device as a full Linux development environment
+
+* Resources
+
+- [[https://mobile.nixos.org/][NixOS Mobile Documentation]]
+- [[https://github.com/mobile-nixos/mobile-nixos][Mobile NixOS GitHub]]
+- [[https://github.com/mobile-nixos/mobile-nixos/issues][Report Issues]]
