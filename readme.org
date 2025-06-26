@@ -19,7 +19,7 @@ cd phoneputer
 
 * Build Flashable Images
 
-We will import the official mobile-nixos repo to build from. It will be a folder `mobile-nixos` under our nixos-mobile project directory. After building, we can delete it as it is only needed to build our base image for one-time use:
+We will import the official mobile-nixos repo to build from. It will be a folder `mobile-nixos` under our phoneputer project directory. After building, we can delete it as it is only needed to build our base image for one-time use:
 
 #+begin_src sh
 git clone git@github.com:mobile-nixos/mobile-nixos.git
