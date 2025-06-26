@@ -10,11 +10,11 @@ This tutorial guides you through installing NixOS Mobile on a OnePlus 6 (enchila
 
 * Clone Your Configuration Repository
 
-First, clone or download this nixos-mobile repository to get you started with a minimal config to build:
+First, clone or download this phoneputer repository to get you started with a minimal config to build:
 
 #+begin_src sh
-git clone https://github.com/mwlaboratories/nixos-mobile.git
-cd nixos-mobile
+git clone git@github.com:mwlaboratories/phoneputer.git
+cd phoneputer
 #+end_src
 
 * Build Flashable Images
@@ -129,8 +129,8 @@ ssh root@172.16.42.1
 Once connected to the device we will rebuild without using the local.nix but like we're used to on a normal NixOS flake install. Adjust the configuration.nix to your liking, but I would suggest building the included one first. It will boot you into GNOME:
 
 #+begin_src sh
-git clone https://github.com/mwlaboratories/nixos-mobile.git
-cd nixos-mobile
+git clone git@github.com:mwlaboratories/phoneputer.git
+cd phoneputer
 #+end_src
 
 ** Rebuild with Your Flake Configuration
