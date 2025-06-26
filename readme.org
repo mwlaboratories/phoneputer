@@ -40,7 +40,6 @@ nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
 3. Go back to Settings → Developer Options
 4. Enable "USB Debugging"
 5. Enable "OEM Unlocking"
-6. Enable "Advanced Reboot"
 
 ** Unlock the Bootloader
 
