@@ -8,6 +8,8 @@
 
 This tutorial guides you through installing NixOS Mobile on a OnePlus 6 (enchilada) device. The process involves building a minimal base image using the local.nix file (with fixes to make it build on x86 machines), flashing it to your device, then rebuilding on the phone itself (aarch64) with the full configuration.nix and flake method we're all used to in the NixOS ecosystem.
 
+video tutorial; https://www.youtube.com/watch?v=GsRtEz8qe0I
+
 * Clone Your Configuration Repository
 
 First, clone or download this phoneputer repository to get you started with a minimal config to build:
