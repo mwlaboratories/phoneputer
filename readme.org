@@ -122,7 +122,7 @@ fastboot flash userdata system.img
 NixOS Mobile provides SSH access because we set it up in the local.nix base configuration we've built. Connect to the device:
 
 #+begin_src sh
-ssh root@172.16.42.1
+ssh root@-localip-
 #+end_src
 
 ** Clone Your Configuration Repository
