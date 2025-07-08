@@ -8,14 +8,14 @@
 
 This tutorial guides you through installing NixOS Mobile on a OnePlus 6 (enchilada) device. The process involves building a minimal base image using the local.nix file (with fixes to make it build on x86 machines), flashing it to your device, then rebuilding on the phone itself (aarch64) with the full configuration.nix and flake method we're all used to in the NixOS ecosystem.
 
-video tutorial; 
+video tutorial; https://youtu.be/yxfDNqZ9WTM
 
 * Clone Your Configuration Repository
 
 First, clone or download this phoneputer repository to get you started with a minimal config to build:
 
 #+begin_src sh
-git clone git@github.com:mwlaboratories/phoneputer.git
+git clone https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
 #+end_src
 
@@ -24,7 +24,7 @@ cd phoneputer
 We will import the official mobile-nixos repo to build from. It will be a folder `mobile-nixos` under our phoneputer project directory. After building, we can delete it as it is only needed to build our base image for one-time use:
 
 #+begin_src sh
-git clone git@github.com:mobile-nixos/mobile-nixos.git
+git clone https://github.com/mobile-nixos/mobile-nixos.git
 cd mobile-nixos
 cp ../local.nix .
 nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
@@ -130,7 +130,7 @@ ssh root@172.16.42.1
 Once connected to the device we will rebuild without using the local.nix but like we're used to on a normal NixOS flake install. Adjust the configuration.nix to your liking, but I would suggest building the included one first. It will boot you into GNOME:
 
 #+begin_src sh
-git clone git@github.com:mwlaboratories/phoneputer.git
+git clone https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
 #+end_src
 
