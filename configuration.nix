@@ -12,6 +12,12 @@
   services.openssh.settings.PermitRootLogin = "yes"; # For initial setup
   services.openssh.settings.PasswordAuthentication = true; # For initial setup
 
+  # Enable audio
+  # PipeWire is enabled by default, but the audio is very quiet with it
+  services.pipewire.enable = lib.mkForce false;
+  # Make sure to select "Speakers Output" as the output device in the settings
+  services.pulseaudio.enable = true;
+
   # Set root password for SSH access
   users.users.root.password = "nixtheplanet";
 
