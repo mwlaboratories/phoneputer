@@ -37,7 +37,64 @@ This fork sets ~isModular = true~ and fixes several related issues that surfaced
 
 * Rebuild with 4G Support
 
-** Step 1: SSH into Your Phone
+** Step 1: Build the Boot Image (On Your Desktop)
+
+The 6.19 kernel boot image needs to be built on a desktop machine — not on the phone. We used eos (x86_64 workstation with ~boot.binfmt.emulatedSystems = [ "aarch64-linux" ]~ enabled for cross-building).
+
+Clone the mobile-nixos fork and build the Android fastboot images:
+
+#+begin_src sh
+git clone -b sdm845-bleeding-edge https://github.com/mwlaboratories/mobile-nixos.git
+cd mobile-nixos
+nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
+#+end_src
+
+This produces ~result/boot.img~ (kernel + initramfs in Android boot format) and ~result/system.img~ (root filesystem). The build takes a while since it's compiling the full 6.19 kernel.
+
+** Step 2: Put the Phone into Fastboot Mode
+
+*From SSH* (if the phone is currently running NixOS):
+
+#+begin_src sh
+ssh root@<your-phone-ip>
+reboot bootloader
+#+end_src
+
+*Or physically*: power off the phone completely, then hold *Volume Up + Power* simultaneously until you see the "START" screen. Plug in the USB cable after the fastboot screen appears.
+
+** Step 3: Flash Boot Image to Slot B
+
+We flash the new boot image to *slot b only*, keeping slot a untouched as a fallback with the original (non-4G) kernel. Do *not* use ~flash-critical.sh~ here — that script flashes ~--slot=all~ and would overwrite your fallback.
+
+On your desktop, open a shell with Android tools and flash:
+
+#+begin_src sh
+nix-shell -p android-tools
+
+# Verify the phone is detected
+fastboot devices
+
+# Check which slot is currently active (should be a)
+fastboot getvar current-slot
+
+# Flash the new boot image to slot b only
+fastboot flash boot_b result/boot.img
+
+# Set slot b as the active boot slot
+fastboot set_active b
+
+# Reboot into the new kernel
+fastboot reboot
+#+end_src
+
+The phone will now boot from slot b with the 6.19 kernel. If anything goes wrong, you can recover by entering fastboot mode (Volume Up + Power) and switching back:
+
+#+begin_src sh
+fastboot set_active a
+fastboot reboot
+#+end_src
+
+** Step 4: SSH into Your Phone
 
 #+begin_src sh
 ssh root@<your-phone-ip>
@@ -45,7 +102,7 @@ ssh root@<your-phone-ip>
 
 Default password from the first tutorial: ~nixtheplanet~
 
-** Step 2: Get the 4G Configuration
+** Step 5: Get the 4G Configuration
 
 If you already have the phoneputer repo cloned on your phone:
 
@@ -62,16 +119,16 @@ git clone -b 4g-testing https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
 #+end_src
 
-** Step 3: Rebuild and Reboot
+** Step 6: Rebuild
 
-The flake on this branch points to the mobile-nixos fork instead of upstream. Rebuild and reboot:
+The flake on this branch points to the mobile-nixos fork instead of upstream. Rebuild to get the matching kernel modules and userspace configuration:
 
 #+begin_src sh
 nixos-rebuild switch --flake .#phoneputer
 reboot
 #+end_src
 
-This will take a while — it's building the new 6.19 kernel with all the module fixes. Insert your SIM card if you haven't already. After reboot, 4G should be available in GNOME Settings → Network.
+Insert your SIM card if you haven't already. After reboot, 4G should be available in GNOME Settings → Network.
 
 * What's Different on This Branch
 
