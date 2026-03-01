@@ -151,11 +151,17 @@ After the rebuild completes, your OnePlus 6 will have:
 You can now:
 - Customize your configuration.nix further
 - Add more packages or services
-- Rebuild anytime with `nixos-rebuild switch --flake .#phone`
+- Rebuild anytime with `nixos-rebuild switch --flake .#phoneputer`
 - Use the device as a full Linux development environment
+
+* 4G / LTE Support
+
+Once you have the base install working, check out the [[https://github.com/mwlaboratories/phoneputer/tree/4g-testing][4g-testing branch]] for a follow-up tutorial that gets cellular connectivity working. It uses a [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][fork of mobile-nixos]] with an upgraded kernel (6.19) and critical module fixes. 4G, frontal camera, and more are all functional.
 
 * Resources
 
+- [[https://github.com/mwlaboratories/phoneputer/tree/4g-testing][4G Tutorial (4g-testing branch)]]
+- [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mobile-nixos fork (sdm845-bleeding-edge)]]
 - [[https://mobile.nixos.org/][NixOS Mobile Documentation]]
 - [[https://github.com/mobile-nixos/mobile-nixos][Mobile NixOS GitHub]]
 - [[https://github.com/mobile-nixos/mobile-nixos/issues][Report Issues]]
