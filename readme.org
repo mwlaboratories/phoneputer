@@ -1,4 +1,4 @@
-#+TITLE: NixOS Mobile Tutorial for OnePlus 6 (enchilada)
+#+TITLE: NixOS Mobile Tutorial for OnePlus 6 (enchilada) — 4G Edition
 #+AUTHOR: Your Name
 #+DATE: 2024
 #+OPTIONS: toc:t num:t
@@ -6,156 +6,179 @@
 
 * Overview
 
-This tutorial guides you through installing NixOS Mobile on a OnePlus 6 (enchilada) device. The process involves building a minimal base image using the local.nix file (with fixes to make it build on x86 machines), flashing it to your device, then rebuilding on the phone itself (aarch64) with the full configuration.nix and flake method we're all used to in the NixOS ecosystem.
+This tutorial gets 4G/LTE cellular connectivity working on your OnePlus 6 running NixOS Mobile. It builds on the [[https://github.com/mwlaboratories/phoneputer/tree/main][main branch tutorial]], which covers the initial install — flashing the base image, setting up the phone, and doing your first ~nixos-rebuild~.
 
-video tutorial; https://youtu.be/yxfDNqZ9WTM
+*Prerequisites:* You should already have a working NixOS Mobile install on your OnePlus 6 from the main branch tutorial. If not, go complete that first.
 
-* Clone Your Configuration Repository
+The key to getting 4G working is our fork of mobile-nixos at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]]. The upstream mobile-nixos ships with a Linux 6.4 kernel and has a broken module system for cross-compiled builds — meaning the modem drivers never actually load. Our fork fixes all of this.
 
-First, clone or download this phoneputer repository to get you started with a minimal config to build:
+video tutorial: (coming soon)
+
+* What Our Fork Fixes
+
+If you're curious about why vanilla mobile-nixos doesn't give you 4G, here's the breakdown. If you just want 4G working, skip to [[*Rebuild with 4G Support][Rebuild with 4G Support]].
+
+** Kernel Upgrade: 6.4 → 6.19
+
+The upstream mobile-nixos SDM845 kernel is pinned to Linux 6.4 from GitLab. Our fork upgrades to *Linux 6.19* (linux-next) from [[https://codeberg.org/sdm845/linux][Codeberg's sdm845 tree]], which includes significantly better Qualcomm modem/radio driver support.
+
+The old kernel used a static 7,500+ line kernel config file. We replaced this with a dynamic config generation approach that merges the kernel's ~defconfig~, the ~sdm845.config~ fragment, and NixOS-required options. This is far more maintainable and ensures the right drivers are present.
+
+** The Module Fix (This Is Why 4G Didn't Work)
+
+This is the critical fix. Upstream mobile-nixos builds the SDM845 kernel with ~isModular = false~. This means kernel modules are *compiled* but *never installed* to the filesystem. The Qualcomm modem stack depends entirely on kernel modules:
+
+- *QRTR* — Qualcomm IPC Router (transport layer for modem communication)
+- *QMI* — Qualcomm Modem Interface (control protocol)
+- *RMNET* — Qualcomm network interface driver (data path)
+- *IPA* — Qualcomm Internet Packet Accelerator (hardware offload)
+
+With ~isModular = false~, all of these get compiled and then thrown away. ~modprobe~ can't find them, so the modem never comes up.
+
+Our fork sets ~isModular = true~ and fixes several related issues:
+
+1. *Module directory version mismatch* — The ~modDirVersion~ must exactly match the kernel's ~kernel.release~ string (~6.19.0-rc4-next-20260106~). Getting this wrong means the modules install to one directory but the kernel looks in another.
+2. *Missing zstd dependency* — Newer kernels compress modules with zstd. Without ~zstd~ in ~nativeBuildInputs~, module compression silently fails.
+3. *Cross-compilation depmod failure* — This was the nastiest bug. When building aarch64 kernels on x86_64, ~make modules_install~ runs ~depmod~ for the *host* architecture, which silently produces nothing. Without ~modules.dep~, ~modprobe~ cannot resolve module dependencies and refuses to load anything. Our fix runs an explicit ~depmod~ in ~postInstall~ targeting the correct module directory.
+
+** Sparse Image Support
+
+Some SDM845 device bootloaders expect Android sparse format images. Our fork adds a ~mobile.system.android.useSparseImage~ option and enables it for all SDM845 devices. The build now runs ~img2simg~ to convert ~system.img~ to sparse format automatically.
+
+** Robust Firmware Handling
+
+The modem firmware blob (~modem.mbn~) needs to be excluded from the initrd (stage-1) but available in stage-2 for actual modem operation. Upstream used a glob ~rm~ that could fail depending on directory structure. Our fork uses ~find~ with ~-delete~ for reliability across device variants.
+
+** Kernel Builder Improvements
+
+Several changes to the shared kernel builder (~overlay/mobile-nixos/kernel/builder.nix~):
+- Added ~python3~ to build inputs (required for kernels ≥ 5.0)
+- Added ~CONFIG_CC_CAN_LINK~ to the config validation whitelist
+- Simplified install targets and added ~Image.gz~ handling
+- Relaxed many kernel config validations from required to optional, since the new defconfig-based approach means not all options exist in newer kernels
+
+* Rebuild with 4G Support
+
+** Step 1: SSH into Your Phone
+
+From your computer, SSH into your already-running NixOS phone:
 
 #+begin_src sh
-git clone https://github.com/mwlaboratories/phoneputer.git
+ssh root@<your-phone-ip>
+#+end_src
+
+Default password from the first tutorial: ~nixtheplanet~
+
+** Step 2: Get the 4G Configuration
+
+If you already have the phoneputer repo cloned on your phone from the first tutorial:
+
+#+begin_src sh
+cd ~/phoneputer
+git fetch origin
+git checkout 4g-testing
+#+end_src
+
+Or clone fresh:
+
+#+begin_src sh
+git clone -b 4g-testing https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
 #+end_src
 
-* Build Flashable Images
+** Step 3: Rebuild
 
-We will import the official mobile-nixos repo to build from. It will be a folder `mobile-nixos` under our phoneputer project directory. After building, we can delete it as it is only needed to build our base image for one-time use:
-
-#+begin_src sh
-git clone https://github.com/mobile-nixos/mobile-nixos.git
-cd mobile-nixos
-cp ../local.nix .
-nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
-#+end_src
-
-* Prepare the Phone
-
-** Update OxygenOS
-1. Update OxygenOS to the latest official version
-2. Remove all Google accounts to avoid FRP (Factory Reset Protection) blocks
-
-** Enable Developer Options
-1. Go to Settings → About Phone
-2. Tap "Build Number" 7 times
-3. Go back to Settings → Developer Options
-4. Enable "USB Debugging"
-5. Enable "OEM Unlocking"
-
-** Unlock the Bootloader
-
-Open a nix-shell with Android tools:
-
-#+begin_src sh
-nix-shell -p adb-sync android-tools
-#+end_src
-
-Check device connection:
-
-#+begin_src sh
-adb devices
-#+end_src
-
-Reboot to bootloader:
-
-#+begin_src sh
-adb -d reboot bootloader
-#+end_src
-
-Unlock bootloader (this will erase all data!):
-
-#+begin_src sh
-fastboot oem unlock
-#+end_src
-
-⚠️ **Warning**: Unlocking the bootloader will erase all data on your device!
-
-** Copy Partitions (A/B Safety Trick)
-
-In some cases, the inactive slot can be unpopulated or contain much older firmware than the active slot, leading to various issues including a potential hard-brick. We can ensure none of that will happen by copying the contents of the active slot to the inactive slot.
-
-To do this, sideload the copy-partitions-20220613-signed.zip package:
-
-1. On the device, select "Apply Update", then "Apply from ADB" to begin sideload
-2. On the host machine, download and sideload the package:
-
-#+begin_src sh
-wget https://mirrorbits.lineageos.org/tools/copy-partitions-20220613-signed.zip
-adb -d sideload copy-partitions-20220613-signed.zip
-#+end_src
-
-Now reboot to recovery by tapping "Advanced", then "Reboot to recovery".
-
-** Prepare for Mainline
-
-This assumes the phone will only run SDM845 mainline images. You will need to erase the dtbo partitions for both slots:
-
-#+begin_src sh
-fastboot erase dtbo_a
-#+end_src
-
-#+begin_src sh
-fastboot erase dtbo_b
-#+end_src
-
-* Flash Images to Device
-
-Flash the critical partitions:
-
-#+begin_src sh
-./result/flash-critical.sh
-#+end_src
-
-Flash system image:
-
-#+begin_src sh
-fastboot flash userdata system.img
-#+end_src
-
-⚠️ **Note**: If the phone isn't recognized, try connecting it *after* booting into fastboot mode.
-
-* First Boot and Configuration
-
-** SSH into the Phone
-
-NixOS Mobile provides SSH access because we set it up in the local.nix base configuration we've built. Connect to the device:
-
-#+begin_src sh
-ssh root@-localip-
-#+end_src
-
-** Clone Your Configuration Repository
-
-Once connected to the device we will rebuild without using the local.nix but like we're used to on a normal NixOS flake install. Adjust the configuration.nix to your liking, but I would suggest building the included one first. It will boot you into GNOME:
-
-#+begin_src sh
-git clone https://github.com/mwlaboratories/phoneputer.git
-cd phoneputer
-#+end_src
-
-** Rebuild with Your Flake Configuration
+The flake on this branch points to our mobile-nixos fork instead of upstream. Just rebuild:
 
 #+begin_src sh
 nixos-rebuild switch --flake .#phoneputer
 #+end_src
 
-* What's Next?
+This will take a while — it's pulling our forked mobile-nixos with the new 6.19 kernel and all the module fixes. On the phone itself, expect a long build.
 
-After the rebuild completes, your OnePlus 6 will have:
-- GNOME desktop environment (with bloat removed)
-- SSH access for remote development
-- Your custom package selection
-- Full NixOS declarative configuration
+** Step 4: Reboot and Insert SIM
 
-You can now:
-- Customize your configuration.nix further
-- Add more packages or services
-- Rebuild anytime with `nixos-rebuild switch --flake .#phone`
-- Use the device as a full Linux development environment
+After the rebuild completes:
+
+#+begin_src sh
+reboot
+#+end_src
+
+Insert your SIM card if you haven't already. After boot, the modem stack should come up automatically:
+- ~rmtfs~ handles modem partition access
+- ~qrtr-ns~ starts the Qualcomm IPC router
+- ~tqftpserv~ serves modem firmware
+- ~pd-mapper~ maps protection domains
+- ~msm-modem-uim-selection~ detects your SIM and provisions it via ~qmicli~
+
+** Step 5: Verify Connectivity
+
+Check that ModemManager sees your modem:
+
+#+begin_src sh
+mmcli -L
+#+end_src
+
+You should see your Qualcomm modem listed. Check its status:
+
+#+begin_src sh
+mmcli -m 0
+#+end_src
+
+If GNOME is running, you should see the cellular option in Settings → Network. You can also configure the APN from there.
+
+To manually connect via command line:
+
+#+begin_src sh
+nmcli connection add type gsm ifname '*' con-name '4G' apn '<your-carrier-apn>'
+nmcli connection up 4G
+#+end_src
+
+* Troubleshooting
+
+** Modem not showing up
+
+Check if the kernel modules loaded:
+
+#+begin_src sh
+lsmod | grep -i qrtr
+lsmod | grep -i qcom
+#+end_src
+
+If nothing shows, the module fix may not have applied. Verify you're on the right branch and rebuild.
+
+** SIM not detected
+
+Check the modem services are running:
+
+#+begin_src sh
+systemctl status rmtfs
+systemctl status qrtr-ns
+systemctl status tqftpserv
+systemctl status msm-modem-uim-selection
+#+end_src
+
+** Connected but no data
+
+You likely need to set the correct APN for your carrier. Check your carrier's website for the APN settings and configure via GNOME Settings or ~nmcli~.
+
+* What's Different on This Branch
+
+Compared to the main branch, this ~4g-testing~ branch changes only the flake input:
+
+#+begin_src nix
+# main branch — upstream mobile-nixos (no 4G)
+mobile-nixos.url = "github:mobile-nixos/mobile-nixos";
+
+# 4g-testing branch — our fork with kernel + module fixes
+mobile-nixos.url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
+#+end_src
+
+Everything else (~configuration.nix~, ~local.nix~) stays the same. The fixes live entirely in the mobile-nixos fork.
 
 * Resources
 
+- [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][Our mobile-nixos fork (sdm845-bleeding-edge)]]
 - [[https://mobile.nixos.org/][NixOS Mobile Documentation]]
-- [[https://github.com/mobile-nixos/mobile-nixos][Mobile NixOS GitHub]]
-- [[https://github.com/mobile-nixos/mobile-nixos/issues][Report Issues]]
+- [[https://github.com/mobile-nixos/mobile-nixos][Upstream Mobile NixOS GitHub]]
+- [[https://codeberg.org/sdm845/linux][SDM845 Linux kernel (Codeberg)]]

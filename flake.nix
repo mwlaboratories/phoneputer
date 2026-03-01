@@ -10,7 +10,7 @@
     
     # Mobile-NixOS repository - provides mobile-specific modules and device support
     mobile-nixos = {
-      url = "github:mobile-nixos/mobile-nixos";
+      url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
       flake = false; # We import it directly, not as a flake
     };
   };
