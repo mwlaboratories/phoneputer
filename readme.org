@@ -16,8 +16,6 @@ video tutorial: (coming soon)
 
 * What This Fork Fixes
 
-If you just want 4G working, skip to [[*Rebuild with 4G Support][Rebuild with 4G Support]].
-
 ** Kernel Upgrade: 6.4 → 6.19
 
 Upstream mobile-nixos pins the SDM845 kernel to Linux 6.4. This fork upgrades to *Linux 6.19* (linux-next) from [[https://codeberg.org/sdm845/linux][Codeberg's sdm845 tree]], which includes significantly better Qualcomm modem/radio driver support. The kernel config was also reworked — the old static 7,500+ line config file was replaced with dynamic generation from ~defconfig~ + ~sdm845.config~ fragment.
