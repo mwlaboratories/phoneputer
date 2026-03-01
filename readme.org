@@ -39,7 +39,7 @@ This fork sets ~isModular = true~ and fixes several related issues that surfaced
 
 ** Step 1: Build the Boot Image (On Your Desktop)
 
-The 6.19 kernel boot image needs to be built on a desktop machine — not on the phone. We used eos (x86_64 workstation with ~boot.binfmt.emulatedSystems = [ "aarch64-linux" ]~ enabled for cross-building).
+The 6.19 kernel boot image needs to be built on a desktop machine — not on the phone. Your x86_64 workstation needs ~boot.binfmt.emulatedSystems = [ "aarch64-linux" ]~ enabled for cross-building.
 
 Clone the mobile-nixos fork and build the Android fastboot images:
 
