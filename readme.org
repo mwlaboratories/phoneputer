@@ -94,39 +94,22 @@ fastboot set_active a
 fastboot reboot
 #+end_src
 
-** Step 4: SSH into Your Phone
+** Step 4: Rebuild with the Fork's Kernel Modules
 
-#+begin_src sh
-ssh root@<your-phone-ip>
+All the 4G fixes live in the mobile-nixos fork — your own ~configuration.nix~ doesn't need to change. The only requirement is that your flake's ~mobile-nixos~ input points to the fork instead of upstream:
+
+#+begin_src nix
+mobile-nixos.url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
 #+end_src
 
-Default password from the first tutorial: ~nixtheplanet~
-
-** Step 5: Get the 4G Configuration
-
-If you already have the phoneputer repo cloned on your phone:
+Rebuild remotely from your desktop to speed things up (building the 6.19 kernel on the phone itself is painfully slow):
 
 #+begin_src sh
-cd ~/phoneputer
-git fetch origin
-git checkout 4g-testing
+nixos-rebuild switch --flake .#phoneputer \
+  --target-host root@<your-phone-ip> --build-host localhost
 #+end_src
 
-Or clone fresh:
-
-#+begin_src sh
-git clone -b 4g-testing https://github.com/mwlaboratories/phoneputer.git
-cd phoneputer
-#+end_src
-
-** Step 6: Rebuild
-
-The flake on this branch points to the mobile-nixos fork instead of upstream. Rebuild to get the matching kernel modules and userspace configuration:
-
-#+begin_src sh
-nixos-rebuild switch --flake .#phoneputer
-reboot
-#+end_src
+This installs the matching kernel modules and regenerates the system configuration. Reboot the phone after it completes.
 
 Insert your SIM card if you haven't already. After reboot, 4G should be available in GNOME Settings → Network.
 
