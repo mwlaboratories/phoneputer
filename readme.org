@@ -10,8 +10,7 @@ This tutorial gets 4G/LTE cellular connectivity working on your OnePlus 6 runnin
 
 *Prerequisites:* You should already have a working NixOS Mobile install on your OnePlus 6 from the main branch tutorial. If not, go complete that first.
 
-The key to getting 4G working is a fork of mobile-nixos at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]]. Upstream mobile-nixos ships with a Linux 6.4 kernel and has a broken module system for cross-compiled builds — meaning the modem drivers never actually load. This fork fixes all of that. The fixes were worked out with the help of [[https://claude.ai][Claude]], Anthropic's AI assistant.
-
+The key to getting 4G working is a fork of mobile-nixos at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]]. Upstream mobile-nixos ships with a Linux 6.4 kernel and has a broken module system for cross-compiled builds — meaning the modem drivers never actually load. This fork fixes all of that. The fixes were worked out with the help of Claude.
 video tutorial: (coming soon)
 
 * What This Fork Fixes
