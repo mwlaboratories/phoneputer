@@ -10,58 +10,37 @@ This tutorial gets 4G/LTE cellular connectivity working on your OnePlus 6 runnin
 
 *Prerequisites:* You should already have a working NixOS Mobile install on your OnePlus 6 from the main branch tutorial. If not, go complete that first.
 
-The key to getting 4G working is our fork of mobile-nixos at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]]. The upstream mobile-nixos ships with a Linux 6.4 kernel and has a broken module system for cross-compiled builds — meaning the modem drivers never actually load. Our fork fixes all of this.
+The key to getting 4G working is a fork of mobile-nixos at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]]. Upstream mobile-nixos ships with a Linux 6.4 kernel and has a broken module system for cross-compiled builds — meaning the modem drivers never actually load. This fork fixes all of that. The fixes were worked out with the help of [[https://claude.ai][Claude]], Anthropic's AI assistant.
 
 video tutorial: (coming soon)
 
-* What Our Fork Fixes
+* What This Fork Fixes
 
-If you're curious about why vanilla mobile-nixos doesn't give you 4G, here's the breakdown. If you just want 4G working, skip to [[*Rebuild with 4G Support][Rebuild with 4G Support]].
+If you just want 4G working, skip to [[*Rebuild with 4G Support][Rebuild with 4G Support]].
 
 ** Kernel Upgrade: 6.4 → 6.19
 
-The upstream mobile-nixos SDM845 kernel is pinned to Linux 6.4 from GitLab. Our fork upgrades to *Linux 6.19* (linux-next) from [[https://codeberg.org/sdm845/linux][Codeberg's sdm845 tree]], which includes significantly better Qualcomm modem/radio driver support.
-
-The old kernel used a static 7,500+ line kernel config file. We replaced this with a dynamic config generation approach that merges the kernel's ~defconfig~, the ~sdm845.config~ fragment, and NixOS-required options. This is far more maintainable and ensures the right drivers are present.
+Upstream mobile-nixos pins the SDM845 kernel to Linux 6.4. This fork upgrades to *Linux 6.19* (linux-next) from [[https://codeberg.org/sdm845/linux][Codeberg's sdm845 tree]], which includes significantly better Qualcomm modem/radio driver support. The kernel config was also reworked — the old static 7,500+ line config file was replaced with dynamic generation from ~defconfig~ + ~sdm845.config~ fragment.
 
 ** The Module Fix (This Is Why 4G Didn't Work)
 
-This is the critical fix. Upstream mobile-nixos builds the SDM845 kernel with ~isModular = false~. This means kernel modules are *compiled* but *never installed* to the filesystem. The Qualcomm modem stack depends entirely on kernel modules:
+This is the critical fix. Upstream builds the SDM845 kernel with ~isModular = false~, which means kernel modules get *compiled* but *never installed* to the filesystem. The Qualcomm modem stack (QRTR, QMI, RMNET, IPA) depends entirely on kernel modules — so with ~isModular = false~, ~modprobe~ can't find them and the modem never comes up.
 
-- *QRTR* — Qualcomm IPC Router (transport layer for modem communication)
-- *QMI* — Qualcomm Modem Interface (control protocol)
-- *RMNET* — Qualcomm network interface driver (data path)
-- *IPA* — Qualcomm Internet Packet Accelerator (hardware offload)
+This fork sets ~isModular = true~ and fixes several related issues that surfaced:
 
-With ~isModular = false~, all of these get compiled and then thrown away. ~modprobe~ can't find them, so the modem never comes up.
+1. *Module directory version mismatch* — ~modDirVersion~ must exactly match the kernel's release string, or modules install to the wrong directory.
+2. *Missing zstd dependency* — Newer kernels compress modules with zstd; without it in build inputs, compression silently fails.
+3. *Cross-compilation depmod failure* — When building aarch64 kernels on x86_64, ~make modules_install~ runs ~depmod~ for the host architecture, which silently produces nothing. Without ~modules.dep~, ~modprobe~ refuses to load anything. The fix runs ~depmod~ explicitly in ~postInstall~.
 
-Our fork sets ~isModular = true~ and fixes several related issues:
+** Other Fixes
 
-1. *Module directory version mismatch* — The ~modDirVersion~ must exactly match the kernel's ~kernel.release~ string (~6.19.0-rc4-next-20260106~). Getting this wrong means the modules install to one directory but the kernel looks in another.
-2. *Missing zstd dependency* — Newer kernels compress modules with zstd. Without ~zstd~ in ~nativeBuildInputs~, module compression silently fails.
-3. *Cross-compilation depmod failure* — This was the nastiest bug. When building aarch64 kernels on x86_64, ~make modules_install~ runs ~depmod~ for the *host* architecture, which silently produces nothing. Without ~modules.dep~, ~modprobe~ cannot resolve module dependencies and refuses to load anything. Our fix runs an explicit ~depmod~ in ~postInstall~ targeting the correct module directory.
-
-** Sparse Image Support
-
-Some SDM845 device bootloaders expect Android sparse format images. Our fork adds a ~mobile.system.android.useSparseImage~ option and enables it for all SDM845 devices. The build now runs ~img2simg~ to convert ~system.img~ to sparse format automatically.
-
-** Robust Firmware Handling
-
-The modem firmware blob (~modem.mbn~) needs to be excluded from the initrd (stage-1) but available in stage-2 for actual modem operation. Upstream used a glob ~rm~ that could fail depending on directory structure. Our fork uses ~find~ with ~-delete~ for reliability across device variants.
-
-** Kernel Builder Improvements
-
-Several changes to the shared kernel builder (~overlay/mobile-nixos/kernel/builder.nix~):
-- Added ~python3~ to build inputs (required for kernels ≥ 5.0)
-- Added ~CONFIG_CC_CAN_LINK~ to the config validation whitelist
-- Simplified install targets and added ~Image.gz~ handling
-- Relaxed many kernel config validations from required to optional, since the new defconfig-based approach means not all options exist in newer kernels
+- *Sparse image support* — SDM845 bootloaders expect Android sparse format images. The fork adds ~img2simg~ conversion automatically.
+- *Firmware handling* — More robust removal of ~modem.mbn~ from the initrd using ~find~ instead of a glob ~rm~ that could fail.
+- *Kernel builder updates* — Added ~python3~ to build inputs, relaxed config validations for the newer kernel, and improved ~Image.gz~ handling.
 
 * Rebuild with 4G Support
 
 ** Step 1: SSH into Your Phone
-
-From your computer, SSH into your already-running NixOS phone:
 
 #+begin_src sh
 ssh root@<your-phone-ip>
@@ -71,7 +50,7 @@ Default password from the first tutorial: ~nixtheplanet~
 
 ** Step 2: Get the 4G Configuration
 
-If you already have the phoneputer repo cloned on your phone from the first tutorial:
+If you already have the phoneputer repo cloned on your phone:
 
 #+begin_src sh
 cd ~/phoneputer
@@ -86,81 +65,16 @@ git clone -b 4g-testing https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
 #+end_src
 
-** Step 3: Rebuild
+** Step 3: Rebuild and Reboot
 
-The flake on this branch points to our mobile-nixos fork instead of upstream. Just rebuild:
+The flake on this branch points to the mobile-nixos fork instead of upstream. Rebuild and reboot:
 
 #+begin_src sh
 nixos-rebuild switch --flake .#phoneputer
-#+end_src
-
-This will take a while — it's pulling our forked mobile-nixos with the new 6.19 kernel and all the module fixes. On the phone itself, expect a long build.
-
-** Step 4: Reboot and Insert SIM
-
-After the rebuild completes:
-
-#+begin_src sh
 reboot
 #+end_src
 
-Insert your SIM card if you haven't already. After boot, the modem stack should come up automatically:
-- ~rmtfs~ handles modem partition access
-- ~qrtr-ns~ starts the Qualcomm IPC router
-- ~tqftpserv~ serves modem firmware
-- ~pd-mapper~ maps protection domains
-- ~msm-modem-uim-selection~ detects your SIM and provisions it via ~qmicli~
-
-** Step 5: Verify Connectivity
-
-Check that ModemManager sees your modem:
-
-#+begin_src sh
-mmcli -L
-#+end_src
-
-You should see your Qualcomm modem listed. Check its status:
-
-#+begin_src sh
-mmcli -m 0
-#+end_src
-
-If GNOME is running, you should see the cellular option in Settings → Network. You can also configure the APN from there.
-
-To manually connect via command line:
-
-#+begin_src sh
-nmcli connection add type gsm ifname '*' con-name '4G' apn '<your-carrier-apn>'
-nmcli connection up 4G
-#+end_src
-
-* Troubleshooting
-
-** Modem not showing up
-
-Check if the kernel modules loaded:
-
-#+begin_src sh
-lsmod | grep -i qrtr
-lsmod | grep -i qcom
-#+end_src
-
-If nothing shows, the module fix may not have applied. Verify you're on the right branch and rebuild.
-
-** SIM not detected
-
-Check the modem services are running:
-
-#+begin_src sh
-systemctl status rmtfs
-systemctl status qrtr-ns
-systemctl status tqftpserv
-systemctl status msm-modem-uim-selection
-#+end_src
-
-** Connected but no data
-
-You likely need to set the correct APN for your carrier. Check your carrier's website for the APN settings and configure via GNOME Settings or ~nmcli~.
+This will take a while — it's building the new 6.19 kernel with all the module fixes. Insert your SIM card if you haven't already. After reboot, 4G should be available in GNOME Settings → Network.
 
 * What's Different on This Branch
 
@@ -170,7 +84,7 @@ Compared to the main branch, this ~4g-testing~ branch changes only the flake inp
 # main branch — upstream mobile-nixos (no 4G)
 mobile-nixos.url = "github:mobile-nixos/mobile-nixos";
 
-# 4g-testing branch — our fork with kernel + module fixes
+# 4g-testing branch — fork with kernel + module fixes
 mobile-nixos.url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
 #+end_src
 
@@ -178,7 +92,7 @@ Everything else (~configuration.nix~, ~local.nix~) stays the same. The fixes liv
 
 * Resources
 
-- [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][Our mobile-nixos fork (sdm845-bleeding-edge)]]
+- [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mobile-nixos fork (sdm845-bleeding-edge)]]
 - [[https://mobile.nixos.org/][NixOS Mobile Documentation]]
 - [[https://github.com/mobile-nixos/mobile-nixos][Upstream Mobile NixOS GitHub]]
 - [[https://codeberg.org/sdm845/linux][SDM845 Linux kernel (Codeberg)]]
