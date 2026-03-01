@@ -102,6 +102,13 @@ All the 4G fixes live in the mobile-nixos fork — your own ~configuration.nix~ 
 mobile-nixos.url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
 #+end_src
 
+Clone this branch on your desktop (or update your own flake's ~mobile-nixos~ input to match):
+
+#+begin_src sh
+git clone -b 4g-testing https://github.com/mwlaboratories/phoneputer.git
+cd phoneputer
+#+end_src
+
 Rebuild remotely from your desktop to speed things up (building the 6.19 kernel on the phone itself is painfully slow):
 
 #+begin_src sh
@@ -125,7 +132,7 @@ mobile-nixos.url = "github:mobile-nixos/mobile-nixos";
 mobile-nixos.url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
 #+end_src
 
-Everything else (~configuration.nix~, ~local.nix~) stays the same. The fixes live entirely in the mobile-nixos fork.
+Everything else (~configuration.nix~) stays the same. The fixes live entirely in the mobile-nixos fork.
 
 * Resources
 
