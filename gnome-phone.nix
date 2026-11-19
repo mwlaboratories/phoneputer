@@ -3,7 +3,7 @@
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This file adds what a phone needs on top: the Stylix colours in GNOME
 # Shell, the clock hidden from behind the notch, the on-screen keyboard
-# with haptic feedback, and Brave set up for touch.
+# with haptic feedback, and sleeping when the screen goes dark.
 
 { config, pkgs, stylix, ... }:
 
@@ -72,28 +72,6 @@ in
     </monitors>
   '';
 
-  # Brave: tell GNOME when a text field is tapped, so the on-screen
-  # keyboard comes up (Chromium only does that with these flags). A
-  # wrapper, so Brave itself still comes from the binary cache.
-  nixpkgs.overlays = [
-    (final: prev: {
-      brave = prev.symlinkJoin {
-        name = "brave-phone-${prev.brave.version}";
-        paths = [ prev.brave ];
-        nativeBuildInputs = [ prev.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/brave --add-flags \
-            "--enable-wayland-ime --wayland-text-input-version=3"
-          desktop=$out/share/applications/brave-browser.desktop
-          sed "s#${prev.brave}/bin/brave#$out/bin/brave#g" \
-            ${prev.brave}/share/applications/brave-browser.desktop > $desktop.new
-          rm $desktop && mv $desktop.new $desktop
-        '';
-        inherit (prev.brave) meta;
-      };
-    })
-  ];
-
   # feedbackd plays vibrations (and sounds) for events; it knows the
   # OnePlus 6's vibration motor from its device theme. Users need to be in
   # the `feedbackd` group (see configuration.nix).
@@ -104,8 +82,10 @@ in
     settings = {
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
-        # The dock: just a browser and the file manager.
-        favorite-apps = [ "brave-browser.desktop" "org.gnome.Nautilus.desktop" ];
+        # The dock: just a browser and the file manager. Firefox, because
+        # Chromium-based browsers (Brave too) don't bring up GNOME's
+        # on-screen keyboard yet.
+        favorite-apps = [ "firefox.desktop" "org.gnome.Nautilus.desktop" ];
       };
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {
@@ -124,6 +104,15 @@ in
       # phone's buttons (volume, alert slider, power: keyboards to Linux)
       # get in the way of.
       "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
+      # Like a phone: when the screen goes dark it sleeps, so one press of
+      # the power key always wakes it. GNOME blanks the screen after
+      # idle-delay (5 min by default, GNOME Settings → Power) and only
+      # suspends after 15 min; a press in between woke the screen and then
+      # suspended at once. If you change the blank delay, match it here.
+      "org/gnome/settings-daemon/plugins/power" = {
+        sleep-inactive-battery-timeout = pkgs.lib.gvariant.mkInt32 300;
+        sleep-inactive-ac-timeout = pkgs.lib.gvariant.mkInt32 300;
+      };
     };
     # The extensions come from this file, not from the Extensions app: the
     # list is locked, so every user gets exactly these (also users who had

@@ -35,7 +35,7 @@
   hardware.bluetooth.enable = true;
 
   # GNOME. You log in with your password; that same password unlocks the
-  # keyring where apps like Brave keep their saved passwords, so they never
+  # keyring where apps like Firefox keep their saved passwords, so they never
   # ask for it separately.
   services.desktopManager.gnome.enable = true;
   services.displayManager.gdm.enable = true;
@@ -67,6 +67,7 @@
 
   # Your packages
   environment.systemPackages = with pkgs; [
+    firefox
     brave
     git
     vim
