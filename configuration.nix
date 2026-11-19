@@ -1,9 +1,15 @@
-# Minimal configuration for OnePlus 6 (enchilada) NixOS Mobile
-# Focus on essentials: SSH, wireless, and basic tools
+# Configuration for OnePlus 6 (enchilada) on Mobile NixOS
+# GNOME, SSH, WiFi, modem, and SSH/serial over USB-C.
 
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    ./usb-gadget.nix # SSH and a serial console over the USB-C cable
+  ];
+
+  networking.hostName = "phoneputer";
+
   # Allow unfree packages (needed for OnePlus firmware)
   nixpkgs.config.allowUnfree = true;
 
@@ -12,13 +18,36 @@
   services.openssh.settings.PermitRootLogin = "yes"; # For initial setup
   services.openssh.settings.PasswordAuthentication = true; # For initial setup
 
+  # WiFi and mobile data
+  networking.networkmanager.enable = true;
+  # Mainline gets no factory WiFi MAC, so it is random per boot and the router
+  # hands out a new IP after every reboot. "stable" derives it from machine-id.
+  networking.networkmanager.wifi.macAddress = "stable";
+  systemd.services.ModemManager.enable = true;
+
+  # Never suspend: the modem's QMI port dies on resume, killing 4G.
+  # Screen blanking still works for power saving.
+  systemd.sleep.settings.Sleep.AllowSuspend = false;
+
+  # The kernel device tree looks for firmware in qcom/sdm845/OnePlus/enchilada/,
+  # but the firmware package installs it in qcom/sdm845/oneplus6/.
+  hardware.firmware = let
+    fw = config.mobile.device.firmware;
+  in [
+    ((pkgs.runCommand "oneplus6-firmware-symlink" {} ''
+      mkdir -p $out/lib/firmware/qcom/sdm845/OnePlus
+      ln -s ${fw}/lib/firmware/qcom/sdm845/oneplus6 $out/lib/firmware/qcom/sdm845/OnePlus/enchilada
+    '') // { compressFirmware = false; })
+  ];
+
   # Enable audio
   # PipeWire is enabled by default, but the audio is very quiet with it
   services.pipewire.enable = lib.mkForce false;
   # Make sure to select "Speakers Output" as the output device in the settings
   services.pulseaudio.enable = true;
 
-  # Set root password for SSH access
+  # Set root password for SSH access. Change it, or better: add your SSH key
+  # to users.users.root.openssh.authorizedKeys.keys and disable passwords.
   users.users.root.password = "nixtheplanet";
 
   # Enable GNOME Desktop Environment
@@ -60,7 +89,8 @@
     asciiquarium
     neovim
     kitty
+    gnomeExtensions.screen-rotate
   ];
 
   system.stateVersion = "25.11";
-} 
+}

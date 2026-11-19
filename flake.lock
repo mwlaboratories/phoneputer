@@ -3,26 +3,27 @@
     "mobile-nixos": {
       "flake": false,
       "locked": {
-        "lastModified": 1749499850,
-        "narHash": "sha256-Fyy9ySTJ7jJ7z2h5+KHJU6OUhPJvy12OlVOichkwmZ0=",
-        "owner": "mobile-nixos",
+        "lastModified": 1795077865,
+        "narHash": "sha256-zwhWfz39z3MA0UbbWCWC6NZ8BehABziFEvnxDl3uQFU=",
+        "owner": "mwlaboratories",
         "repo": "mobile-nixos",
-        "rev": "26faf325d6efb169e2e4a2c435346b46c19d08bc",
+        "rev": "76b9691edb13f56b3f8955aa5a6bc789946b5277",
         "type": "github"
       },
       "original": {
-        "owner": "mobile-nixos",
+        "owner": "mwlaboratories",
+        "ref": "sdm845-bleeding-edge",
         "repo": "mobile-nixos",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1750506804,
-        "narHash": "sha256-VLFNc4egNjovYVxDGyBYTrvVCgDYgENp5bVi9fPTDYc=",
+        "lastModified": 1794890597,
+        "narHash": "sha256-lME2lHoDHAaSHP3/okgiVoJ0icVEvsQH8LeU3We7tcc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4206c4cb56751df534751b058295ea61357bbbaa",
+        "rev": "04906337b6d53e8bb0eaf0470ae9f070a4d4eb55",
         "type": "github"
       },
       "original": {
