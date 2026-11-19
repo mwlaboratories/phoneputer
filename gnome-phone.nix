@@ -64,7 +64,12 @@ in
         # notch; hide it. Notifications still pop up as banners.
         clock-menu = false;
         support-notifier-type = pkgs.lib.gvariant.mkInt32 0; # no pop-ups
+        # Every window opens full screen, like apps on a phone.
+        window-maximized-on-create = true;
       };
+      # Dragging a window to the top edge maximizes it (off by default in
+      # GNOME 51).
+      "org/gnome/mutter".edge-tiling = true;
     };
   }];
 }
