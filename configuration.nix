@@ -34,14 +34,11 @@
   networking.modemmanager.enable = true;
   hardware.bluetooth.enable = true;
 
-  # GNOME, logging in automatically: typing a password on the login screen
-  # of a phone is no fun. The screen lock still asks for it.
+  # GNOME. You log in with your password; that same password unlocks the
+  # keyring where apps like Brave keep their saved passwords, so they never
+  # ask for it separately.
   services.desktopManager.gnome.enable = true;
   services.displayManager.gdm.enable = true;
-  services.displayManager.autoLogin = {
-    enable = true;
-    user = "phone";
-  };
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
 

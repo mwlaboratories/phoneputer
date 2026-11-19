@@ -143,7 +143,7 @@ If =fastboot= doesn't see the phone, unplug and replug the cable /after/ the pho
 
 * Step 4: First Boot
 
-The first boot takes a little longer while the phone grows its file system to fill the storage. Then GNOME starts and logs you in as the user =phone=. The password is =nixtheplanet=; change it in a terminal with =passwd=.
+The first boot takes a little longer while the phone grows its file system to fill the storage. Then GNOME starts; log in as the user =phone= with the password =nixtheplanet=. Change it in a terminal with =passwd=.
 
 Connect to WiFi in GNOME Settings → Wi-Fi. That's it: you're running NixOS.
 
