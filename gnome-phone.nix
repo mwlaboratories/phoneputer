@@ -61,6 +61,29 @@ in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
 
+  # Brave on a phone: always full screen, and tell GNOME when a text field
+  # is tapped so the on-screen keyboard comes up (Chromium only does that
+  # with these flags). A wrapper, so Brave itself still comes from the
+  # binary cache.
+  nixpkgs.overlays = [
+    (final: prev: {
+      brave = prev.symlinkJoin {
+        name = "brave-phone-${prev.brave.version}";
+        paths = [ prev.brave ];
+        nativeBuildInputs = [ prev.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/brave --add-flags \
+            "--start-maximized --enable-wayland-ime --wayland-text-input-version=3"
+          desktop=$out/share/applications/brave-browser.desktop
+          sed "s#${prev.brave}/bin/brave#$out/bin/brave#g" \
+            ${prev.brave}/share/applications/brave-browser.desktop > $desktop.new
+          rm $desktop && mv $desktop.new $desktop
+        '';
+        inherit (prev.brave) meta;
+      };
+    })
+  ];
+
   # feedbackd plays vibrations (and sounds) for events; it knows the
   # OnePlus 6's vibration motor from its device theme. Users need to be in
   # the `feedbackd` group (see configuration.nix).
