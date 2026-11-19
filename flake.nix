@@ -27,6 +27,7 @@
           stylix.nixosModules.stylix
           ./configuration.nix
           ./stylix.nix
+          ./gnome-phone.nix
           {
             # Compile the kernel natively on the PC instead of through aarch64
             # emulation: minutes instead of hours. Everything else comes from
