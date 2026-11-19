@@ -29,12 +29,12 @@ Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 
 | Feature               | Status                                                              |
 |-----------------------+---------------------------------------------------------------------|
-| Display + GPU         | Works (1080×2280, Adreno 630)                                       |
+| Display + GPU         | Display works; GPU unused (firmware missing at boot), fix pending   |
 | WiFi                  | Works                                                               |
 | Bluetooth             | Works                                                               |
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
-| USB-C role switching  | Works: the phone picks device/host and power role by itself         |
-| USB OTG power         | Present; not yet tested with a device plugged in                    |
+| USB-C port            | Works like a laptop's: picks host/device and power role by itself   |
+| USB devices           | Keyboard dongle works, powered by the phone; hub not yet tested     |
 | Cameras               | Rear 30 fps, front ~11.5 fps; Snapshot fix in fork, not yet tested  |
 | Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
 | Microphone            | Broken: records only silence on 7.4 (cause under investigation)     |
@@ -149,7 +149,9 @@ Connect to WiFi in GNOME Settings → Wi-Fi. That's it: you're running NixOS.
 
 ** SSH over the USB-C cable
 
-With the phone booted and plugged into your PC, it shows up as a network device. No WiFi needed:
+The USB-C port works like a laptop's: plug in a keyboard or other USB device and the phone acts as host and powers it; plug it into a charger or PC and it charges. The port is USB 2.0 and has no video output; that's the OnePlus 6 hardware.
+
+One extra a laptop doesn't have: plugged into your PC, the phone also shows up as a network device. No WiFi needed:
 
 #+begin_src sh
 ssh phone@172.16.42.1
