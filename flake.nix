@@ -19,17 +19,13 @@
         modules = [
           (import "${mobile-nixos}/lib/configuration.nix" { device = "oneplus-enchilada"; })
           ./configuration.nix
-        ] ++ nixpkgs.lib.optional (buildKernelOn != null) ({ config, lib, ... }: {
-          # Compile the kernel natively on the PC instead of through aarch64
-          # emulation: minutes instead of hours. Everything else comes from
-          # the binary cache.
-          mobile.boot.stage-1.kernel.package = lib.mkForce
-            ((import nixpkgs {
-              localSystem = buildKernelOn;
-              crossSystem = "aarch64-linux";
-              overlays = config.nixpkgs.overlays;
-            }).callPackage "${mobile-nixos}/devices/families/sdm845-mainline/kernel" { });
-        });
+          {
+            # Compile the kernel natively on the PC instead of through aarch64
+            # emulation: minutes instead of hours. Everything else comes from
+            # the binary cache. null (the default) builds it on the phone.
+            mobile.boot.stage-1.kernel.buildOn = buildKernelOn;
+          }
+        ];
       };
     in {
       nixosConfigurations = {
