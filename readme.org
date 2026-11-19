@@ -35,7 +35,7 @@ Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C role switching  | Works: the phone picks device/host and power role by itself         |
 | USB OTG power         | Present; not yet tested with a device plugged in                    |
-| Cameras               | Rear 30 fps, front ~11.5 fps; Snapshot needs a fix pending in fork  |
+| Cameras               | Rear 30 fps, front ~11.5 fps; Snapshot fix in fork, not yet tested  |
 | Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
 | Microphone            | Broken: records only silence on 7.4 (cause under investigation)     |
 | Earpiece / call audio | Missing: the audio config has no earpiece or call profile yet       |
