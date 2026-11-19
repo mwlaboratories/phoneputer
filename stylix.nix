@@ -39,4 +39,13 @@
       };
     };
   };
+
+  # Boot screen: no scrolling kernel text, but a spinning NixOS logo in the
+  # wallpaper's colours (Plymouth, themed by Stylix) until GNOME starts.
+  # Changes the kernel command line, so flash the boot image once after
+  # turning this on or off.
+  mobile.beautification = {
+    silentBoot = true;
+    splash = true;
+  };
 }
