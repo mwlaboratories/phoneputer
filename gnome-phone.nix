@@ -56,6 +56,9 @@ in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
 
+  # Set the time zone from where the phone is, like a phone does.
+  services.automatic-timezoned.enable = true;
+
   # Defaults for every user; still changeable in the Extensions app.
   programs.dconf.profiles.user.databases = [{
     settings = {
@@ -66,7 +69,12 @@ in
         clock-menu-position = pkgs.lib.gvariant.mkInt32 2;        # left
         clock-menu-position-offset = pkgs.lib.gvariant.mkInt32 0; # first
         support-notifier-type = pkgs.lib.gvariant.mkInt32 0;      # no pop-ups
+        # The Activities button would sit under the notch. Swipe up from
+        # the bottom edge to open the overview instead.
+        activities-button = false;
       };
+      # Just the time in the top bar, like a phone.
+      "org/gnome/desktop/interface".clock-show-date = false;
     };
   }];
 }
