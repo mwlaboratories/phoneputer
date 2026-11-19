@@ -1,4 +1,4 @@
-#+TITLE: NixOS Mobile Tutorial for OnePlus 6 (enchilada)
+#+TITLE: NixOS on the OnePlus 6
 #+AUTHOR: mwlaboratories
 #+DATE: 2026
 #+OPTIONS: toc:t num:t
@@ -6,236 +6,207 @@
 
 * Overview
 
-This tutorial installs NixOS on a OnePlus 6 (enchilada) with Mobile NixOS. You build a minimal base image on your desktop (the =local.nix= file, with fixes so it builds on x86 machines), flash it to the phone, and then rebuild on the phone itself with the full =configuration.nix= and the flake workflow you know from regular NixOS.
+This tutorial puts NixOS with GNOME on a OnePlus 6 (codename /enchilada/). You build everything on your PC with one command, flash it once, and the phone boots straight into GNOME. After that you change the phone like any NixOS machine: edit =configuration.nix= and rebuild.
 
-Video tutorial: https://youtu.be/yxfDNqZ9WTM
+Video tutorial: https://youtu.be/yxfDNqZ9WTM (it shows an older two-stage install; the phone preparation is the same)
 
-The base video still applies. Since then, this repository has moved from upstream Mobile NixOS to a fork, and the old =4g-testing= branch is folded into this tutorial.
+All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors, SSH over the USB-C cable) lives in a [[https://github.com/mwlaboratories/mobile-nixos][fork of Mobile NixOS]]. This repository only holds your choices: GNOME, a user, packages.
 
-** Why a fork of Mobile NixOS
+** What you need
 
-Upstream Mobile NixOS still ships the SDM845 (Snapdragon 845) kernel at Linux 6.4, and its kernel build doesn't install kernel modules for cross-compiled builds. The Qualcomm modem stack (QRTR, QMI, RMNET, IPA) is built entirely from modules, so upstream never brings the modem up.
+- A *OnePlus 6* (A6000/A6003). Not the OnePlus 6T: that is a different device (/fajita/).
+- A USB-C cable that carries data.
+- A Linux PC (x86_64) with [[https://nixos.org/download/][Nix]], flakes enabled, and the ability to run aarch64 programs:
+  - On NixOS: =boot.binfmt.emulatedSystems = [ "aarch64-linux" ];= in your configuration, then rebuild.
+  - On other distributions: install QEMU user emulation with binfmt support (e.g. =qemu-user-static= / =qemu-user-binfmt=) and add =extra-platforms = aarch64-linux= to =/etc/nix/nix.conf=.
+- About 30 GB of free disk space and an hour, most of it waiting for downloads.
 
-The fork at [[https://github.com/mwlaboratories/mobile-nixos/tree/main][mwlaboratories/mobile-nixos]] fixes that:
-
-- *Newer kernel*: Linux 7.4 (release candidate) from the =sdm845-linus= branches of the [[https://codeberg.org/sdm845/linux][sdm845 kernel tree on Codeberg]], built from =defconfig= plus an =sdm845.config= fragment instead of a 7,500-line static config. It adds USB-C role switching and OTG power; the GPU, display and video clock controllers are built in, because as modules they load too late and the screen stays black.
-- *Modules that actually load*: =isModular = true=, a =modDirVersion= that matches the kernel's release string, zstd for module compression, and an explicit =depmod= after install (when you cross-build on x86_64, =make modules_install= runs the host's =depmod=, which silently produces no =modules.dep=).
-- *Smaller fixes*: Android sparse images for the SDM845 bootloader, more robust removal of =modem.mbn= from the initrd, and kernel builder updates for the newer kernel.
+⚠️ Installing erases everything on the phone.
 
 * What works
 
-Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel =7.4.0-rc3=:
+Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 
 | Feature               | Status                                                              |
 |-----------------------+---------------------------------------------------------------------|
 | Display + GPU         | Works (1080×2280, Adreno 630)                                       |
 | WiFi                  | Works                                                               |
-| SSH / serial over USB | Works (see [[*Access over USB-C][Access over USB-C]])           |
+| Bluetooth             | Works                                                               |
+| SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C role switching  | Works: the phone picks device/host and power role by itself         |
-| USB OTG power         | Regulator present; not yet tested with a device plugged in          |
+| USB OTG power         | Present; not yet tested with a device plugged in                    |
 | Cameras               | Capture works: rear 30 fps / 30 fps, front about 11.5 fps           |
-| Speaker               | Works with PulseAudio ("Speakers Output")                           |
+| Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
 | Microphone / earpiece | Not yet tested                                                      |
-| Modem                 | Starts at boot and is detected; 4G worked in earlier tests with a SIM |
+| Modem                 | Starts at boot; 4G worked in earlier tests with a SIM               |
 | Calls / SMS           | Not retested on this release (needs a SIM)                          |
-| Bluetooth             | Works: stable address, scanning finds nearby devices                |
 | Sensors               | Light, compass, proximity and accelerometer report values           |
 | Screen rotation       | Accelerometer works; the rotation direction is not yet checked      |
-| Waydroid              | Won't work: Linux 7.4 dropped the C binder (needs the Rust binder)  |
+| Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
 | Suspend               | Disabled on purpose: the modem doesn't survive resume               |
 
-* Clone This Repository
+* Step 1: Build the Images (on your PC)
+
+#+begin_src sh
+nix build github:mwlaboratories/phoneputer#images
+#+end_src
+
+This builds the kernel natively on your PC (a few minutes), downloads the rest of the system from the NixOS binary cache, and leaves everything you need to flash in =./result/=.
+
+Want to change something first, like the user name or the packages? Clone the repository, edit =configuration.nix=, and build from there:
 
 #+begin_src sh
 git clone https://github.com/mwlaboratories/phoneputer.git
 cd phoneputer
+nix build .#images
 #+end_src
 
-* Build Flashable Images
+Let it build while you prepare the phone.
 
-Build the base images from the Mobile NixOS fork. It ends up in a =mobile-nixos= folder under the project directory, and you only need it once, for this first install:
+* Step 2: Prepare the Phone
+
+These steps are the same for every custom OS on the OnePlus 6.
+
+** Update OxygenOS and remove Google accounts
+
+1. Update OxygenOS to the latest official version.
+2. Remove all Google accounts, so Factory Reset Protection can't block you later.
+
+** Enable developer options
+
+1. Settings → About Phone → tap "Build Number" 7 times.
+2. Settings → Developer Options: enable "USB Debugging" and "OEM Unlocking".
+
+** Unlock the bootloader
+
+Get the Android tools on your PC:
 
 #+begin_src sh
-git clone https://github.com/mwlaboratories/mobile-nixos.git
-cd mobile-nixos
-cp ../local.nix .
-nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
+nix shell nixpkgs#android-tools
 #+end_src
 
-Before building, put your WiFi name and password in =local.nix=, so the phone comes up on your network and you can SSH in. Your x86_64 machine needs =boot.binfmt.emulatedSystems = [ "aarch64-linux" ];= to build for the phone. The kernel compiles from source, so the first build takes a while.
-
-* Prepare the Phone
-
-** Update OxygenOS
-1. Update OxygenOS to the latest official version
-2. Remove all Google accounts to avoid FRP (Factory Reset Protection) blocks
-
-** Enable Developer Options
-1. Go to Settings → About Phone
-2. Tap "Build Number" 7 times
-3. Go back to Settings → Developer Options
-4. Enable "USB Debugging"
-5. Enable "OEM Unlocking"
-
-** Unlock the Bootloader
-
-Open a shell with Android tools:
-
-#+begin_src sh
-nix-shell -p android-tools
-#+end_src
-
-Check the device connection:
+Connect the phone, allow USB debugging on its screen, and reboot it into the bootloader:
 
 #+begin_src sh
 adb devices
+adb reboot bootloader
 #+end_src
 
-Reboot to the bootloader:
-
-#+begin_src sh
-adb -d reboot bootloader
-#+end_src
-
-Unlock the bootloader (this erases all data!):
+Unlock (this erases the phone) and confirm on the phone's screen:
 
 #+begin_src sh
 fastboot oem unlock
 #+end_src
 
-⚠️ *Warning*: Unlocking the bootloader erases all data on your device!
+** Make both A/B slots safe
 
-** Copy Partitions (A/B Safety Trick)
+The phone has two copies ("slots") of its firmware. The inactive one can be empty or much older, which can brick the phone later. Copy the active slot over it once. The package comes from LineageOS and needs the LineageOS recovery to install it. Booting that recovery works as in the [[https://wiki.lineageos.org/devices/enchilada/install/][LineageOS install guide for the OnePlus 6]].
 
-The inactive slot can be empty or hold much older firmware than the active slot, which leads to various problems, up to a hard brick. Copying the active slot to the inactive slot prevents all of that.
+1. Download the recovery image for /enchilada/ from the [[https://download.lineageos.org/devices/enchilada/builds][LineageOS downloads]] and flash it to the boot partition, from the bootloader. The Mobile NixOS flash in step 3 overwrites it again:
 
-To do this, sideload the copy-partitions-20220613-signed.zip package:
+#+begin_src sh
+fastboot flash boot <recovery_filename>.img
+#+end_src
 
-1. On the device, select "Apply Update", then "Apply from ADB" to begin sideload
-2. On the host machine, download and sideload the package:
+2. With the volume keys, choose "Recovery mode" on the bootloader screen and press Power. In the recovery, choose "Apply Update", then "Apply from ADB".
+3. On the PC:
 
 #+begin_src sh
 wget https://mirrorbits.lineageos.org/tools/copy-partitions-20220613-signed.zip
-adb -d sideload copy-partitions-20220613-signed.zip
+adb sideload copy-partitions-20220613-signed.zip
 #+end_src
 
-Now reboot to recovery by tapping "Advanced", then "Reboot to recovery".
+4. Tap "Advanced" → "Reboot to bootloader".
 
-** Prepare for Mainline
+** Erase the Android device tree overlays
 
-This assumes the phone will only run SDM845 mainline images. Erase the dtbo partitions for both slots:
+The mainline kernel needs these gone, on both slots:
 
 #+begin_src sh
 fastboot erase dtbo_a
-#+end_src
-
-#+begin_src sh
 fastboot erase dtbo_b
 #+end_src
 
-* Flash Images to Device
+* Step 3: Flash
 
-Flash the critical partitions:
-
-#+begin_src sh
-./result/flash-critical.sh
-#+end_src
-
-Flash the system image:
+With the phone still in the bootloader and the build from step 1 finished:
 
 #+begin_src sh
-fastboot flash userdata result/system.img
-#+end_src
-
-⚠️ *Note*: If the phone isn't recognized, try connecting it /after/ booting into fastboot mode.
-
-* First Boot and Configuration
-
-** SSH into the Phone
-
-The base image from =local.nix= enables SSH and WiFi. Find the phone's IP in your router, then connect (password: =nixtheplanet=):
-
-#+begin_src sh
-ssh root@<phone-ip>
-#+end_src
-
-** Rebuild with the Flake Configuration
-
-From here on you work like on any NixOS flake install. Adjust =configuration.nix= to your liking, but build the included one first. It boots you into GNOME.
-
-The fastest way is to build on your desktop and push the result to the phone:
-
-#+begin_src sh
-nixos-rebuild switch --flake .#phoneputer \
-  --target-host root@<phone-ip> --build-host localhost
-#+end_src
-
-Or clone the repository on the phone and build there (slow: the phone compiles the kernel itself):
-
-#+begin_src sh
-git clone https://github.com/mwlaboratories/phoneputer.git
-cd phoneputer
-nixos-rebuild switch --flake .#phoneputer
-#+end_src
-
-After this rebuild the phone uses NetworkManager instead of the base image's WiFi setup. Connect to WiFi again in GNOME Settings → Wi-Fi. Then flash the kernel that matches this configuration, as described next.
-
-* Updating the Kernel
-
-=nixos-rebuild switch= updates everything /except/ the kernel. The kernel and initrd live in the =boot= partition, which the phone's bootloader starts directly. The boot image then starts the newest system generation. So whenever the flake's kernel changes (including the first rebuild above), build and flash a new boot image, so the kernel matches the modules in the system.
-
-Build the boot image on your desktop:
-
-#+begin_src sh
-nix build .#nixosConfigurations.phoneputer.config.mobile.outputs.android.android-bootimg -o boot.img
-#+end_src
-
-Put the phone into fastboot mode over SSH (or power it off and hold Volume Up + Power):
-
-#+begin_src sh
-ssh root@<phone-ip> reboot bootloader
-#+end_src
-
-Try the new image /without/ flashing it first. =fastboot boot= starts it once; the next reboot uses the old kernel again:
-
-#+begin_src sh
-nix-shell -p android-tools
-fastboot devices
-fastboot boot boot.img
-#+end_src
-
-If everything works, flash it to the active slot. =fastboot getvar current-slot= shows which slot that is:
-
-#+begin_src sh
-ssh root@<phone-ip> reboot bootloader
-fastboot getvar current-slot
-fastboot flash boot_a boot.img   # use boot_b if the current slot is b
+cd result
+./flash-critical.sh
+fastboot flash userdata system.img
 fastboot reboot
 #+end_src
 
-Keep a backup of the old boot partition before you overwrite it. On the phone, =dd if=/dev/disk/by-partlabel/boot_a of=/root/boot_a.img= (pick the active slot) gives you an image to flash back if the new kernel doesn't boot.
+If =fastboot= doesn't see the phone, unplug and replug the cable /after/ the phone shows the bootloader screen. To get back to the bootloader at any time: power the phone off, then hold Volume Up + Power.
 
-* Access over USB-C
+* Step 4: First Boot
 
-Mobile NixOS only sets up a USB gadget during early boot, so a booted phone shows nothing over USB. =usb-gadget.nix= fixes that: after boot the phone presents a network interface and a serial console over the cable.
+The first boot takes a little longer while the phone grows its file system to fill the storage. Then GNOME starts and logs you in as the user =phone=. The password is =nixtheplanet=; change it in a terminal with =passwd=.
 
-With the phone plugged in, your PC gets an address by DHCP and you can SSH in without WiFi:
+Connect to WiFi in GNOME Settings → Wi-Fi. That's it: you're running NixOS.
 
-#+begin_src sh
-ssh root@172.16.42.1
-#+end_src
+** SSH over the USB-C cable
 
-The serial console shows up on the PC as =/dev/ttyACM0= (the number can differ):
+With the phone booted and plugged into your PC, it shows up as a network device. No WiFi needed:
 
 #+begin_src sh
-screen /dev/ttyACM0 115200
+ssh phone@172.16.42.1
 #+end_src
 
-This is also what makes fastboot work remotely: =reboot bootloader= over SSH, and the phone appears in =fastboot devices= on the same cable.
+There's also a serial console, on the PC as =/dev/ttyACM0= (the number can differ): =screen /dev/ttyACM0 115200=.
+
+Copy your SSH key over once, so rebuilds don't ask for a password every time:
+
+#+begin_src sh
+ssh-copy-id root@172.16.42.1
+#+end_src
+
+* Changing the Phone
+
+Edit =configuration.nix= in your clone, then build on your PC and push the result to the phone:
+
+#+begin_src sh
+nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
+#+end_src
+
+Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged in. Building on the phone itself also works (=nixos-rebuild switch --flake .#phoneputer-native=), but the phone then compiles its own kernel, which takes hours.
+
+To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages:
+
+#+begin_src sh
+nix flake update
+nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
+#+end_src
+
+** Updating the kernel
+
+=nixos-rebuild switch= updates everything /except/ the kernel. The kernel lives in the phone's =boot= partition, which the bootloader starts directly. So when an update changes the kernel, also flash a new boot image.
+
+Build it on your PC:
+
+#+begin_src sh
+nix build .#boot-image -o boot.img
+#+end_src
+
+Send the phone to the bootloader and try the new kernel once, without flashing it. The next reboot goes back to the old kernel:
+
+#+begin_src sh
+ssh root@172.16.42.1 reboot bootloader
+fastboot boot boot.img
+#+end_src
+
+If everything works, flash it for good:
+
+#+begin_src sh
+ssh root@172.16.42.1 reboot bootloader
+fastboot flash boot boot.img
+fastboot reboot
+#+end_src
 
 * 4G / LTE
 
-Insert a SIM card and reboot. ModemManager brings up the modem, and mobile data appears in GNOME Settings → Network. To check the modem from a shell:
+Insert a SIM card and reboot. Mobile data appears in GNOME Settings → Mobile Network. To check the modem from a terminal:
 
 #+begin_src sh
 mmcli -L
@@ -244,23 +215,19 @@ mmcli -m 0
 
 Without a SIM, =mmcli -m 0= reports state =failed= with reason =sim-missing=. That is expected.
 
-* What's Next?
+* How It Works
 
-After the rebuild, your OnePlus 6 has:
-- GNOME (with bloat removed)
-- SSH over WiFi and over the USB-C cable
-- The modem stack for 4G
-- Full declarative NixOS configuration
+Upstream Mobile NixOS still ships the OnePlus 6 kernel at Linux 6.4, and its kernel build doesn't install kernel modules when cross-compiling. The Qualcomm modem stack (QRTR, QMI, RMNET, IPA) is built entirely from modules, so upstream never brings the modem up. The [[https://github.com/mwlaboratories/mobile-nixos][fork]] fixes that and adds the rest of the hardware:
 
-You can now:
-- Customise =configuration.nix= further
-- Add more packages or services
-- Rebuild any time with =nixos-rebuild switch --flake .#phoneputer=
-- Use the device as a full Linux development environment
+- *Kernel*: Linux 7.4 from the =sdm845-linus= branches of the [[https://codeberg.org/sdm845/linux][sdm845 kernel tree]], with working modules (=isModular=, a matching =modDirVersion=, zstd, an explicit =depmod=), USB-C role switching and OTG power. The GPU, display and video clock controllers are built in; as modules they load too late and the screen stays black.
+- *Firmware*: the paths the kernel expects (=qcom/sdm845/OnePlus/enchilada=, =qca/OnePlus/enchilada=) point at the OnePlus firmware package.
+- *Bluetooth and WiFi addresses*: no factory addresses reach the mainline kernel, so the phone derives stable ones (Bluetooth from the serial number).
+- *Sensors*: =hexagonrpcd= serves the sensor DSP its configuration, and =iio-sensor-proxy= reads the sensors from it.
+- *USB-C gadget*: Mobile NixOS normally only sets up USB during early boot. The fork keeps a network interface and a serial console after boot (=mobile.usb.stage-2=).
 
 * Resources
 
-- [[https://github.com/mwlaboratories/mobile-nixos/tree/main][Mobile NixOS fork]]
+- [[https://github.com/mwlaboratories/mobile-nixos][Mobile NixOS fork (mwlaboratories)]]
 - [[https://codeberg.org/sdm845/linux][SDM845 Linux kernel (Codeberg)]]
 - [[https://mobile.nixos.org/][Mobile NixOS documentation]]
 - [[https://github.com/mobile-nixos/mobile-nixos][Upstream Mobile NixOS on GitHub]]
