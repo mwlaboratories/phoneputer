@@ -56,9 +56,6 @@ in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
 
-  # Set the time zone from where the phone is, like a phone does.
-  services.automatic-timezoned.enable = true;
-
   # Defaults for every user; still changeable in the Extensions app.
   programs.dconf.profiles.user.databases = [{
     settings = {
