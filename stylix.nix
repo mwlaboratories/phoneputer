@@ -4,8 +4,12 @@
 # GTK apps, the terminal and more. To restyle the phone, change the
 # wallpaper below and rebuild. Docs: https://nix-community.github.io/stylix/
 
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
+let
+  inherit (config.stylix) fonts image polarity;
+  size = toString fonts.sizes.applications;
+in
 {
   stylix = {
     enable = true;
@@ -39,6 +43,29 @@
       };
     };
   };
+
+  # Stylix sets the GNOME wallpaper, dark mode and fonts through Home
+  # Manager, which this config doesn't use. So they are set here as
+  # system-wide defaults; you can still change them in GNOME Settings.
+  programs.dconf.profiles.user.databases = [{
+    settings = {
+      "org/gnome/desktop/background" = {
+        picture-uri = "file://${image}";
+        picture-uri-dark = "file://${image}";
+        picture-options = "zoom";
+      };
+      "org/gnome/desktop/screensaver" = {
+        picture-uri = "file://${image}";
+        picture-options = "zoom";
+      };
+      "org/gnome/desktop/interface" = {
+        color-scheme = if polarity == "dark" then "prefer-dark" else "default";
+        font-name = "${fonts.sansSerif.name} ${size}";
+        document-font-name = "${fonts.serif.name} ${size}";
+        monospace-font-name = "${fonts.monospace.name} ${size}";
+      };
+    };
+  }];
 
   # Boot screen: no scrolling kernel text, but a spinning NixOS logo in the
   # wallpaper's colours (Plymouth, themed by Stylix) until GNOME starts.
