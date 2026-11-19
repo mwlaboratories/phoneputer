@@ -6,6 +6,8 @@
 {
   imports = [
     ./usb-gadget.nix # SSH and a serial console over the USB-C cable
+    ./bluetooth.nix  # firmware path + stable public address
+    ./sensors.nix    # light, compass, proximity, accelerometer (rotation)
   ];
 
   networking.hostName = "phoneputer";
