@@ -175,6 +175,8 @@ nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
 
 Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged in. Building on the phone itself also works (=nixos-rebuild switch --flake .#phoneputer-native=), but the phone then compiles its own kernel, which takes hours.
 
+Your own wallpaper: put an image named =wallpaper.png= or =wallpaper.jpg= next to =flake.nix=, run =git add wallpaper.png= (a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper.
+
 To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages:
 
 #+begin_src sh

@@ -1,24 +1,34 @@
 # Looks: wallpaper, colours and fonts, applied everywhere by Stylix.
 #
 # Stylix picks a colour scheme from the wallpaper and applies it to GNOME,
-# GTK apps, the terminal and more. To restyle the phone, change the
-# wallpaper below and rebuild. Docs: https://nix-community.github.io/stylix/
+# GTK apps, the terminal and more. Docs: https://nix-community.github.io/stylix/
+#
+# Your own wallpaper: put an image named wallpaper.png or wallpaper.jpg next
+# to flake.nix, `git add` it (a flake only sees files git knows about), and
+# rebuild. Wallpaper and colours change together. Without one, the phone
+# uses the NixOS "waterfall" wallpaper.
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   inherit (config.stylix) fonts image polarity;
   size = toString fonts.sizes.applications;
+
+  ownWallpaper = lib.findFirst builtins.pathExists null [
+    ./wallpaper.png
+    ./wallpaper.jpg
+  ];
 in
 {
   stylix = {
     enable = true;
 
-    # The wallpaper; the colours are taken from it. Any image works:
-    #   image = ./my-wallpaper.jpg;
-    # This one is NixOS artwork (CC-BY-SA 4.0); see the others with
+    # The wallpaper; the colours are taken from it. The default is NixOS
+    # artwork (CC-BY-SA 4.0); see the others with
     # `nix search nixpkgs nixos-artwork.wallpapers`.
-    image = pkgs.nixos-artwork.wallpapers.waterfall.gnomeFilePath;
+    image =
+      if ownWallpaper != null then ownWallpaper
+      else pkgs.nixos-artwork.wallpapers.waterfall.gnomeFilePath;
 
     # Dark or light theme.
     polarity = "dark";
