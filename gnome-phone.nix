@@ -2,9 +2,8 @@
 #
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This file adds what a phone needs on top: the Stylix colours in GNOME
-# Shell, the clock hidden from behind the notch, windows opening full
-# screen, haptic feedback on the on-screen keyboard, and Brave set up for
-# touch.
+# Shell, the clock hidden from behind the notch, the on-screen keyboard
+# with haptic feedback, and Brave set up for touch.
 
 { config, pkgs, stylix, ... }:
 
@@ -73,10 +72,9 @@ in
     </monitors>
   '';
 
-  # Brave on a phone: always full screen, and tell GNOME when a text field
-  # is tapped so the on-screen keyboard comes up (Chromium only does that
-  # with these flags). A wrapper, so Brave itself still comes from the
-  # binary cache.
+  # Brave: tell GNOME when a text field is tapped, so the on-screen
+  # keyboard comes up (Chromium only does that with these flags). A
+  # wrapper, so Brave itself still comes from the binary cache.
   nixpkgs.overlays = [
     (final: prev: {
       brave = prev.symlinkJoin {
@@ -85,7 +83,7 @@ in
         nativeBuildInputs = [ prev.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/brave --add-flags \
-            "--start-maximized --enable-wayland-ime --wayland-text-input-version=3"
+            "--enable-wayland-ime --wayland-text-input-version=3"
           desktop=$out/share/applications/brave-browser.desktop
           sed "s#${prev.brave}/bin/brave#$out/bin/brave#g" \
             ${prev.brave}/share/applications/brave-browser.desktop > $desktop.new
@@ -101,7 +99,7 @@ in
   # the `feedbackd` group (see configuration.nix).
   programs.feedbackd.enable = true;
 
-  # Defaults for every user; still changeable in the Extensions app.
+  # Defaults for every user; most stay changeable in GNOME Settings.
   programs.dconf.profiles.user.databases = [{
     settings = {
       "org/gnome/shell" = {
@@ -115,8 +113,6 @@ in
         # notch; hide it. Notifications still pop up as banners.
         clock-menu = false;
         support-notifier-type = pkgs.lib.gvariant.mkInt32 0; # no pop-ups
-        # Every window opens full screen, like apps on a phone.
-        window-maximized-on-create = true;
       };
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).
@@ -129,5 +125,9 @@ in
       # get in the way of.
       "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
     };
+    # The extensions come from this file, not from the Extensions app: the
+    # list is locked, so every user gets exactly these (also users who had
+    # their own list). Add or remove extensions above, in `extensions`.
+    locks = [ "/org/gnome/shell/enabled-extensions" ];
   }];
 }
