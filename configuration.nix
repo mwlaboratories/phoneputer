@@ -79,7 +79,6 @@
     lazygit
     kitty
     asciiquarium
-    gnomeExtensions.screen-rotate
   ];
 
   system.stateVersion = "25.11";
