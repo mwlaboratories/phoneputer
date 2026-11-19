@@ -53,8 +53,11 @@ in
   # Defaults for every user; still changeable in the Extensions app.
   programs.dconf.profiles.user.databases = [{
     settings = {
-      "org/gnome/shell".enabled-extensions =
-        map (e: e.extensionUuid) extensions;
+      "org/gnome/shell" = {
+        enabled-extensions = map (e: e.extensionUuid) extensions;
+        # The dock: just a browser and the file manager.
+        favorite-apps = [ "brave-browser.desktop" "org.gnome.Nautilus.desktop" ];
+      };
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {
         # The clock (and with it the notification list) sits behind the

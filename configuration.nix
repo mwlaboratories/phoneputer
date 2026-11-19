@@ -70,6 +70,7 @@
 
   # Your packages
   environment.systemPackages = with pkgs; [
+    brave
     git
     vim
     neovim
