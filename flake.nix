@@ -10,15 +10,23 @@
       url = "github:mwlaboratories/mobile-nixos/main";
       flake = false; # We import it directly, not as a flake
     };
+
+    # Stylix: one wallpaper themes the whole phone (see stylix.nix)
+    stylix = {
+      url = "github:danth/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, mobile-nixos, ... }:
+  outputs = { self, nixpkgs, mobile-nixos, stylix, ... }:
     let
       phone = { buildKernelOn ? null }: nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
           (import "${mobile-nixos}/lib/configuration.nix" { device = "oneplus-enchilada"; })
+          stylix.nixosModules.stylix
           ./configuration.nix
+          ./stylix.nix
           {
             # Compile the kernel natively on the PC instead of through aarch64
             # emulation: minutes instead of hours. Everything else comes from
