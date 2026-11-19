@@ -10,7 +10,7 @@
     
     # Mobile-NixOS repository - provides mobile-specific modules and device support
     mobile-nixos = {
-      url = "github:mwlaboratories/mobile-nixos/sdm845-bleeding-edge";
+      url = "github:mwlaboratories/mobile-nixos/main";
       flake = false; # Fork: newer sdm845 kernel + working kernel modules (4G)
     };
   };

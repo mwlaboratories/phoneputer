@@ -16,28 +16,32 @@ The base video still applies. Since then, this repository has moved from upstrea
 
 Upstream Mobile NixOS still ships the SDM845 (Snapdragon 845) kernel at Linux 6.4, and its kernel build doesn't install kernel modules for cross-compiled builds. The Qualcomm modem stack (QRTR, QMI, RMNET, IPA) is built entirely from modules, so upstream never brings the modem up.
 
-The fork at [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][mwlaboratories/mobile-nixos (sdm845-bleeding-edge)]] fixes that:
+The fork at [[https://github.com/mwlaboratories/mobile-nixos/tree/main][mwlaboratories/mobile-nixos]] fixes that:
 
-- *Newer kernel*: Linux 6.19 from the [[https://codeberg.org/sdm845/linux][sdm845 kernel tree on Codeberg]], built from =defconfig= plus an =sdm845.config= fragment instead of a 7,500-line static config.
+- *Newer kernel*: Linux 7.4 (release candidate) from the =sdm845-linus= branches of the [[https://codeberg.org/sdm845/linux][sdm845 kernel tree on Codeberg]], built from =defconfig= plus an =sdm845.config= fragment instead of a 7,500-line static config. It adds USB-C role switching and OTG power; the GPU, display and video clock controllers are built in, because as modules they load too late and the screen stays black.
 - *Modules that actually load*: =isModular = true=, a =modDirVersion= that matches the kernel's release string, zstd for module compression, and an explicit =depmod= after install (when you cross-build on x86_64, =make modules_install= runs the host's =depmod=, which silently produces no =modules.dep=).
 - *Smaller fixes*: Android sparse images for the SDM845 bootloader, more robust removal of =modem.mbn= from the initrd, and kernel builder updates for the newer kernel.
 
 * What works
 
-Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel =6.19.0-rc4-next-20260106=:
+Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel =7.4.0-rc3=:
 
-| Feature               | Status                                                          |
-|-----------------------+-----------------------------------------------------------------|
-| WiFi                  | Works                                                           |
-| SSH / serial over USB | Works (see [[*Access over USB-C][Access over USB-C]])       |
-| GPU acceleration      | Works (Adreno 630 initialises)                                  |
-| Modem                 | Detected by ModemManager; 4G worked in earlier tests with a SIM |
-| Calls / SMS           | Not retested on this release (needs a SIM)                      |
-| Cameras               | All three sensors detected; capture not yet tested              |
-| Speaker               | Works with PulseAudio ("Speakers Output")                       |
-| Microphone / earpiece | Not yet tested                                                  |
-| Bluetooth             | Broken: firmware file =crnv21.bin= is missing                   |
-| Suspend               | Disabled on purpose: the modem doesn't survive resume           |
+| Feature               | Status                                                              |
+|-----------------------+---------------------------------------------------------------------|
+| Display + GPU         | Works (1080×2280, Adreno 630)                                       |
+| WiFi                  | Works                                                               |
+| SSH / serial over USB | Works (see [[*Access over USB-C][Access over USB-C]])           |
+| USB-C role switching  | Works: the phone picks device/host and power role by itself         |
+| USB OTG power         | Regulator present; not yet tested with a device plugged in          |
+| Cameras               | Capture works: rear 30 fps / 30 fps, front about 11.5 fps           |
+| Speaker               | Works with PulseAudio ("Speakers Output")                           |
+| Microphone / earpiece | Not yet tested                                                      |
+| Modem                 | Starts at boot and is detected; 4G worked in earlier tests with a SIM |
+| Calls / SMS           | Not retested on this release (needs a SIM)                          |
+| Bluetooth             | Broken: wrong MAC, the firmware file =crnv21.bin= is missing        |
+| Sensors               | Broken: =hexagonrpcd= is missing                                    |
+| Waydroid              | Won't work: Linux 7.4 dropped the C binder (needs the Rust binder)  |
+| Suspend               | Disabled on purpose: the modem doesn't survive resume               |
 
 * Clone This Repository
 
@@ -51,7 +55,7 @@ cd phoneputer
 Build the base images from the Mobile NixOS fork. It ends up in a =mobile-nixos= folder under the project directory, and you only need it once, for this first install:
 
 #+begin_src sh
-git clone -b sdm845-bleeding-edge https://github.com/mwlaboratories/mobile-nixos.git
+git clone https://github.com/mwlaboratories/mobile-nixos.git
 cd mobile-nixos
 cp ../local.nix .
 nix-build --argstr device oneplus-enchilada -A outputs.android-fastboot-images
@@ -255,7 +259,7 @@ You can now:
 
 * Resources
 
-- [[https://github.com/mwlaboratories/mobile-nixos/tree/sdm845-bleeding-edge][Mobile NixOS fork (sdm845-bleeding-edge)]]
+- [[https://github.com/mwlaboratories/mobile-nixos/tree/main][Mobile NixOS fork]]
 - [[https://codeberg.org/sdm845/linux][SDM845 Linux kernel (Codeberg)]]
 - [[https://mobile.nixos.org/][Mobile NixOS documentation]]
 - [[https://github.com/mobile-nixos/mobile-nixos][Upstream Mobile NixOS on GitHub]]

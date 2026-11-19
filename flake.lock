@@ -3,16 +3,16 @@
     "mobile-nixos": {
       "flake": false,
       "locked": {
-        "lastModified": 1795077865,
-        "narHash": "sha256-zwhWfz39z3MA0UbbWCWC6NZ8BehABziFEvnxDl3uQFU=",
+        "lastModified": 1795087895,
+        "narHash": "sha256-+6Tpy7Wso9nZrCG8c9tOJgQlxkeVTldxyA+dqRBsq/w=",
         "owner": "mwlaboratories",
         "repo": "mobile-nixos",
-        "rev": "76b9691edb13f56b3f8955aa5a6bc789946b5277",
+        "rev": "70cb6fb940f33fffc6aac45df1f0d29c5d540963",
         "type": "github"
       },
       "original": {
         "owner": "mwlaboratories",
-        "ref": "sdm845-bleeding-edge",
+        "ref": "main",
         "repo": "mobile-nixos",
         "type": "github"
       }

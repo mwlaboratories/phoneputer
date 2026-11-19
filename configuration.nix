@@ -24,6 +24,9 @@
   # hands out a new IP after every reboot. "stable" derives it from machine-id.
   networking.networkmanager.wifi.macAddress = "stable";
   systemd.services.ModemManager.enable = true;
+  # Start the modem at boot. Otherwise only the GNOME greeter starts it over
+  # D-Bus, and without a graphical session the modem stays off.
+  systemd.services.ModemManager.wantedBy = [ "multi-user.target" ];
 
   # Never suspend: the modem's QMI port dies on resume, killing 4G.
   # Screen blanking still works for power saving.
