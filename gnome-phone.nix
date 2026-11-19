@@ -7,13 +7,22 @@
 # GNOME's logical pixels; the OnePlus 6 runs at 2.5× scale, so its screen
 # is 432 logical pixels wide.
 
-{ pkgs, ... }:
+{ config, pkgs, stylix, ... }:
 
 let
-  # A GNOME Shell theme: the normal theme (with the Stylix colours), plus
-  # the phone tweaks below.
+  # GNOME Shell's own theme in the Stylix colours. Stylix would normally
+  # patch and recompile all of GNOME Shell for this (stylix.nix turns that
+  # off); building just the stylesheet keeps GNOME Shell from the binary
+  # cache.
+  stylixShellTheme = pkgs.callPackage "${stylix}/modules/gnome/theme.nix" {
+    inherit (config.lib.stylix) colors;
+    inherit (config.stylix) inputs;
+  };
+
+  # A GNOME Shell theme: the Stylix-coloured theme, plus the phone tweaks
+  # below.
   phoneTheme = pkgs.writeTextDir "share/themes/Phoneputer/gnome-shell/gnome-shell.css" ''
-    @import url("resource:///org/gnome/shell/theme/gnome-shell-dark.css");
+    @import url("file://${stylixShellTheme}/share/gnome-shell/gnome-shell.css");
 
     /* Top bar: keep clear of the rounded screen corners. */
     #panel {

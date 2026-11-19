@@ -23,6 +23,11 @@ in
     # Dark or light theme.
     polarity = "dark";
 
+    # Stylix themes GNOME Shell by patching and recompiling it, which on a
+    # PC means hours of aarch64 emulation. gnome-phone.nix applies the same
+    # colours as a shell theme instead, so GNOME Shell comes from the cache.
+    overlays.enable = false;
+
     # GNOME's own fonts: clear on a small, sharp screen.
     fonts = {
       sansSerif = {

@@ -22,6 +22,7 @@
     let
       phone = { buildKernelOn ? null }: nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        specialArgs = { inherit stylix; };
         modules = [
           (import "${mobile-nixos}/lib/configuration.nix" { device = "oneplus-enchilada"; })
           stylix.nixosModules.stylix
