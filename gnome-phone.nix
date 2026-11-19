@@ -1,11 +1,10 @@
 # GNOME on a phone screen.
 #
-# GNOME is made for laptops: its top bar runs into the rounded screen
-# corners and puts the clock under the notch, and its app grid uses tiny
-# icons with cut-off names on a narrow screen. This file fixes both with
-# two GNOME extensions and a few lines of style (CSS). The numbers are in
-# GNOME's logical pixels; the OnePlus 6 runs at 2.5× scale, so its screen
-# is 432 logical pixels wide.
+# GNOME is made for laptops. On a phone its app grid shows tiny icons with
+# cut-off names, and its clock sits in the middle of the top bar, behind
+# the notch. This file fixes the app grid with a few lines of style (CSS)
+# and hides the clock. The numbers are in GNOME's logical pixels; the
+# OnePlus 6 runs at 2.5× scale, so its screen is 432 logical pixels wide.
 
 { config, pkgs, stylix, ... }:
 
@@ -23,11 +22,6 @@ let
   # below.
   phoneTheme = pkgs.writeTextDir "share/themes/Phoneputer/gnome-shell/gnome-shell.css" ''
     @import url("file://${stylixShellTheme}/share/gnome-shell/gnome-shell.css");
-
-    /* Top bar: keep clear of the rounded screen corners. */
-    #panel {
-      padding: 0 22px;
-    }
 
     /* App grid: four columns of large icons with short, small names,
        like a phone home screen. */
@@ -50,7 +44,7 @@ let
 
   extensions = with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
-    just-perfection  # moves the clock out from under the notch
+    just-perfection  # hides the clock
   ];
 in
 {
@@ -63,15 +57,11 @@ in
         map (e: e.extensionUuid) extensions;
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {
-        clock-menu-position = pkgs.lib.gvariant.mkInt32 2;        # left
-        clock-menu-position-offset = pkgs.lib.gvariant.mkInt32 0; # first
-        support-notifier-type = pkgs.lib.gvariant.mkInt32 0;      # no pop-ups
-        # The Activities button would sit under the notch. Swipe up from
-        # the bottom edge to open the overview instead.
-        activities-button = false;
+        # The clock (and with it the notification list) sits behind the
+        # notch; hide it. Notifications still pop up as banners.
+        clock-menu = false;
+        support-notifier-type = pkgs.lib.gvariant.mkInt32 0; # no pop-ups
       };
-      # Just the time in the top bar, like a phone.
-      "org/gnome/desktop/interface".clock-show-date = false;
     };
   }];
 }
