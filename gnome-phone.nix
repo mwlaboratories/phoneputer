@@ -3,8 +3,7 @@
 # GNOME is made for laptops. On a phone its app grid shows tiny icons with
 # cut-off names, and its clock sits in the middle of the top bar, behind
 # the notch. This file fixes the app grid with a few lines of style (CSS)
-# and hides the clock. The numbers are in GNOME's logical pixels; the
-# OnePlus 6 runs at 2.5× scale, so its screen is 432 logical pixels wide.
+# and hides the clock. The numbers are in GNOME's logical pixels.
 
 { config, pkgs, stylix, ... }:
 
@@ -60,6 +59,38 @@ let
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
+
+  # Display scale 150%. GNOME picks 250% by itself, which leaves a screen
+  # only 432 pixels wide in GNOME's terms: menus run off the edge and
+  # dragging windows doesn't work well. At 150% it's 720 wide. This is the
+  # default for every user and the login screen; change it per user in
+  # GNOME Settings → Displays.
+  environment.etc."xdg/monitors.xml".text = ''
+    <monitors version="2">
+      <configuration>
+        <layoutmode>logical</layoutmode>
+        <logicalmonitor>
+          <x>0</x>
+          <y>0</y>
+          <scale>1.5</scale>
+          <primary>yes</primary>
+          <monitor>
+            <monitorspec>
+              <connector>DSI-1</connector>
+              <vendor>unknown</vendor>
+              <product>unknown</product>
+              <serial>unknown</serial>
+            </monitorspec>
+            <mode>
+              <width>1080</width>
+              <height>2280</height>
+              <rate>60.000</rate>
+            </mode>
+          </monitor>
+        </logicalmonitor>
+      </configuration>
+    </monitors>
+  '';
 
   # Brave on a phone: always full screen, and tell GNOME when a text field
   # is tapped so the on-screen keyboard comes up (Chromium only does that
