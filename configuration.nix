@@ -18,7 +18,7 @@
     isNormalUser = true;
     description = "Phone";
     initialPassword = "nixtheplanet";
-    extraGroups = [ "wheel" "networkmanager" "video" "audio" "dialout" ];
+    extraGroups = [ "wheel" "networkmanager" "video" "audio" "dialout" "feedbackd" ];
   };
 
   # Root, for SSH. Same password; change it with `passwd` as root.

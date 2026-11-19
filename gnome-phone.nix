@@ -42,13 +42,29 @@ let
     }
   '';
 
-  extensions = with pkgs.gnomeExtensions; [
+  # Our own small extension (./osk-haptics): a short vibration on every
+  # touch of the on-screen keyboard, which GNOME doesn't do by itself.
+  oskHaptics = pkgs.runCommand "gnome-shell-extension-osk-haptics" {
+    passthru.extensionUuid = "osk-haptics@phoneputer";
+  } ''
+    dir=$out/share/gnome-shell/extensions/osk-haptics@phoneputer
+    mkdir -p $dir
+    cp ${./osk-haptics/metadata.json} $dir/metadata.json
+    cp ${./osk-haptics/extension.js} $dir/extension.js
+  '';
+
+  extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
     just-perfection  # hides the clock
-  ];
+  ]) ++ [ oskHaptics ];
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
+
+  # feedbackd plays vibrations (and sounds) for events; it knows the
+  # OnePlus 6's vibration motor from its device theme. Users need to be in
+  # the `feedbackd` group (see configuration.nix).
+  programs.feedbackd.enable = true;
 
   # Defaults for every user; still changeable in the Extensions app.
   programs.dconf.profiles.user.databases = [{
@@ -70,6 +86,8 @@ in
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).
       "org/gnome/mutter".edge-tiling = true;
+      # feedbackd: vibrations only, no click sounds ("full" adds sounds).
+      "org/sigxcpu/feedbackd".profile = "quiet";
     };
   }];
 }
