@@ -6,6 +6,20 @@
 
 { config, lib, pkgs, ... }:
 
+let
+  # A website as an app: its own icon in the app grid and dock, opening in
+  # Firefox (whose pages bring up the on-screen keyboard). The icon is
+  # copied out of the Papirus icon theme, so the phone gets just that file.
+  webApp = { name, url, icon }: pkgs.makeDesktopItem {
+    name = lib.toLower (lib.replaceStrings [ " " ] [ "-" ] name);
+    desktopName = name;
+    exec = "firefox --new-window ${url}";
+    icon = pkgs.runCommand "${icon}.svg" { } ''
+      cp ${pkgs.papirus-icon-theme}/share/icons/Papirus/64x64/apps/${icon}.svg $out
+    '';
+    categories = [ "Network" ];
+  };
+in
 {
   networking.hostName = "phoneputer";
 
@@ -66,17 +80,23 @@
   ];
 
   # Your packages
+  # (nvim comes from nvim.nix)
   environment.systemPackages = with pkgs; [
     firefox
     brave
+    ghostty     # terminal
+    claude-code # coding agents in the terminal: `claude`
+    codex       #   and `codex`
+    luanti      # voxel game
     git
     vim
-    neovim
     wget
     curl
     lazygit
-    kitty
     asciiquarium
+    (webApp { name = "Discord"; url = "https://discord.com/app"; icon = "discord"; })
+    (webApp { name = "YouTube"; url = "https://m.youtube.com"; icon = "youtube"; })
+    (webApp { name = "Fluid"; url = "https://paveldogreat.github.io/WebGL-Fluid-Simulation/"; icon = "fluid"; })
   ];
 
   system.stateVersion = "25.11";

@@ -82,10 +82,17 @@ in
     settings = {
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
-        # The dock: just a browser and the file manager. Firefox, because
-        # Chromium-based browsers (Brave too) don't bring up GNOME's
-        # on-screen keyboard yet.
-        favorite-apps = [ "firefox.desktop" "org.gnome.Nautilus.desktop" ];
+        # The dock. Firefox rather than Brave, because Chromium-based
+        # browsers don't bring up GNOME's on-screen keyboard yet. Discord,
+        # YouTube and Fluid are websites (webApp in configuration.nix).
+        favorite-apps = [
+          "com.mitchellh.ghostty.desktop"
+          "firefox.desktop"
+          "discord.desktop"
+          "youtube.desktop"
+          "org.luanti.luanti.desktop"
+          "fluid.desktop"
+        ];
       };
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {

@@ -16,9 +16,15 @@
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Nixvim: Neovim set up in Nix (see nvim.nix)
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, mobile-nixos, stylix, ... }:
+  outputs = { self, nixpkgs, mobile-nixos, stylix, nixvim, ... }:
     let
       phone = { buildKernelOn ? null }: nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
@@ -26,9 +32,11 @@
         modules = [
           (import "${mobile-nixos}/lib/configuration.nix" { device = "oneplus-enchilada"; })
           stylix.nixosModules.stylix
+          nixvim.nixosModules.nixvim
           ./configuration.nix
           ./stylix.nix
           ./gnome-phone.nix
+          ./nvim.nix
           {
             # Compile the kernel natively on the PC instead of through aarch64
             # emulation: minutes instead of hours. Everything else comes from
