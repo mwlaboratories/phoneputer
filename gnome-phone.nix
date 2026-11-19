@@ -46,6 +46,23 @@ let
       width: 76px;
       font-size: 0.85em;
     }
+
+    /* Quick settings: GNOME's toggles are 12em wide, so two of them
+       don't fit next to each other; narrower ones do. */
+    .quick-toggle {
+      min-width: 10.5em;
+      max-width: 10.5em;
+    }
+
+    /* Clock menu: notifications and the date only (the month calendar is
+       hidden below); GNOME's 29em notification list is wider than the
+       whole screen. */
+    .message-list {
+      width: 13em;
+    }
+    .datemenu-today-button .date-label {
+      font-size: 1em;
+    }
   '';
 
   extensions = with pkgs.gnomeExtensions; [
@@ -69,6 +86,12 @@ in
         # The Activities button would sit under the notch. Swipe up from
         # the bottom edge to open the overview instead.
         activities-button = false;
+        # Clock menu: notifications and the date, like a phone's pull-down.
+        # The month calendar is in the Calendar app.
+        calendar = false;
+        events-button = false;
+        world-clock = false;
+        weather = false;
       };
       # Just the time in the top bar, like a phone.
       "org/gnome/desktop/interface".clock-show-date = false;
