@@ -45,11 +45,10 @@
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
 
-  # Audio
-  # PipeWire is the default, but the audio is very quiet with it.
-  services.pipewire.enable = lib.mkForce false;
-  # Select "Speakers Output" as the output device in GNOME Settings → Sound.
-  services.pulseaudio.enable = true;
+  # Audio: PipeWire + WirePlumber, the NixOS default with GNOME. The camera
+  # in GNOME (Snapshot) also needs it, through PipeWire's libcamera support.
+  # If the speaker is too quiet, that is a hardware fix (ALSA/UCM) that
+  # belongs in the Mobile NixOS fork; don't disable PipeWire here.
 
   # Remove GNOME applications that make little sense on a phone
   environment.gnome.excludePackages = with pkgs; [
