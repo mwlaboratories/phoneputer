@@ -123,6 +123,11 @@ in
       "org/gnome/mutter".edge-tiling = true;
       # feedbackd: vibrations only, no click sounds ("full" adds sounds).
       "org/sigxcpu/feedbackd".profile = "quiet";
+      # On-screen keyboard always on: it comes up whenever a text field is
+      # tapped. GNOME's automatic mode only works in "touch mode", which the
+      # phone's buttons (volume, alert slider, power: keyboards to Linux)
+      # get in the way of.
+      "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
     };
   }];
 }
