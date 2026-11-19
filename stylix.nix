@@ -72,12 +72,11 @@ in
     };
   }];
 
-  # Boot screen: no scrolling kernel text, but a spinning NixOS logo in the
-  # wallpaper's colours (Plymouth, themed by Stylix) until GNOME starts.
-  # Changes the kernel command line, so flash the boot image once after
-  # turning this on or off.
+  # Boot screen: off for now. With Plymouth (mobile.beautification.splash)
+  # the phone hung at "Started Show Plymouth Boot Screen" on 2026-11-19;
+  # under investigation.
   mobile.beautification = {
-    silentBoot = true;
-    splash = true;
+    silentBoot = false;
+    splash = false;
   };
 }
