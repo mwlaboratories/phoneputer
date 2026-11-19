@@ -35,16 +35,16 @@ Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C role switching  | Works: the phone picks device/host and power role by itself         |
 | USB OTG power         | Present; not yet tested with a device plugged in                    |
-| Cameras               | Capture works: rear 30 fps / 30 fps, front about 11.5 fps           |
+| Cameras               | Rear 30 fps, front ~11.5 fps; Snapshot needs a fix pending in fork  |
 | Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
 | Microphone            | Broken: records only silence on 7.4 (cause under investigation)     |
 | Earpiece / call audio | Missing: the audio config has no earpiece or call profile yet       |
 | Modem                 | Starts at boot; 4G worked in earlier tests with a SIM               |
 | Calls / SMS           | Not retested (needs a SIM); calls need the microphone and earpiece  |
-| Sensors               | Light, compass, proximity and accelerometer report values           |
+| Sensors               | Light, compass, proximity and accelerometer work, also after reboot |
 | Screen rotation       | Accelerometer works; the rotation direction is not yet checked      |
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
-| Suspend               | Disabled on purpose: the modem doesn't survive resume               |
+| Suspend               | Works; the modem after resume is not yet tested with a SIM          |
 
 * Step 1: Build the Images (on your PC)
 
