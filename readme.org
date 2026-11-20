@@ -10,7 +10,7 @@ This tutorial puts NixOS with GNOME on a OnePlus 6 (codename /enchilada/). You b
 
 Video tutorial: https://youtu.be/yxfDNqZ9WTM (it shows an older two-stage install; the phone preparation is the same)
 
-All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors, SSH over the USB-C cable) lives in a [[https://github.com/mwlaboratories/mobile-nixos][fork of Mobile NixOS]]. This repository only holds your choices: GNOME, a user, packages.
+All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors, SSH over the USB-C cable) lives in a [[https://github.com/mwlaboratories/mobile-nixos][fork of Mobile NixOS]]. This repository holds the rest: GNOME made for a phone, the Stylix colours, a user and your apps (Home Manager).
 
 ** What you need
 
@@ -162,9 +162,10 @@ ssh nix@172.16.42.1
 
 There's also a serial console, on the PC as =/dev/ttyACM0= (the number can differ): =screen /dev/ttyACM0 115200=.
 
-Copy your SSH key over once, so rebuilds don't ask for a password every time:
+Copy your SSH key over once, so SSH and copying a kernel over (see below) don't ask for a password every time:
 
 #+begin_src sh
+ssh-copy-id nix@172.16.42.1
 ssh-copy-id root@172.16.42.1
 #+end_src
 
@@ -182,17 +183,9 @@ Then edit the configuration there and rebuild, in a terminal on the phone or ove
 nh os switch
 #+end_src
 
-Or edit in your clone on your PC and push the result to the phone:
+Nearly everything comes ready-made from the NixOS binary cache. What isn't there is what this configuration changes itself, mainly GNOME Shell with the Stylix colours built in, and the phone builds that itself, in about three minutes. It's faster at it than your PC: a PC builds for the phone's ARM processor through emulation, about three times slower (a GNOME Shell build took 89 s on the phone, 254 s on a 16-thread PC). The one exception is the kernel, which takes hours on the phone and minutes on a PC that cross-compiles it; see [[*Updating the kernel][Updating the kernel]].
 
-#+begin_src sh
-nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
-#+end_src
-
-Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged in.
-
-Both ways download nearly everything ready-made from the NixOS binary cache; what's built is what this configuration changes itself (a patched GNOME Shell, for instance). The phone builds that faster than your PC: a PC builds for the phone's ARM processor through emulation, about three times slower than the phone itself (a GNOME Shell build took 89 s on the phone, 254 s on a 16-thread PC). The exception is the kernel: that one your PC cross-compiles, in minutes instead of hours. So when the kernel changes (see [[*Updating the kernel][Updating the kernel]]), rebuild from your PC with the =nixos-rebuild= command above; after that =nh os switch= on the phone finds the kernel already there. (=.#phoneputer-native= builds everything on the phone, the kernel too, which takes hours.)
-
-Your own wallpaper: replace =hosts/phoneputer/wallpaper.jpg= (or point =stylix.image= in =configuration.nix= at another image; =git add= it, a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper, and the new one shows as soon as the rebuild is done.
+Your own wallpaper: replace =hosts/phoneputer/wallpaper.jpg= (or point =stylix.image= in =configuration.nix= at another image; =git add= it, a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper. The wallpaper itself and your apps' colours change as soon as the rebuild is done; GNOME's own menus and the login screen after you log out and back in.
 
 To pick up changes to this repository on the phone:
 
@@ -202,18 +195,22 @@ git pull
 nh os switch
 #+end_src
 
-To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages, update on your PC, since that can bring a new kernel:
+To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages, update the inputs (on the phone or your PC, then commit and pull), and rebuild on the phone as above. If the update changes the kernel, the rebuild stops at the kernel: build it on your PC first, as below.
 
 #+begin_src sh
 nix flake update
-nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
 #+end_src
 
 ** Updating the kernel
 
-=nixos-rebuild switch= updates everything /except/ the kernel. The kernel lives in the phone's =boot= partition, which the bootloader starts directly. So when an update changes the kernel, also flash a new boot image.
+The phone doesn't compile its own kernel (that takes hours); your PC cross-compiles it in minutes. Build it there and copy it to the phone, then rebuild on the phone as usual:
 
-Build it on your PC:
+#+begin_src sh
+nix copy --to ssh://root@172.16.42.1 .#kernel
+ssh -t nix@172.16.42.1 'cd ~/phoneputer && git pull && nh os switch'
+#+end_src
+
+The kernel also lives in the phone's =boot= partition, which the bootloader starts directly, so flash a new boot image too. Build it on your PC:
 
 #+begin_src sh
 nix build .#boot-image -o boot.img

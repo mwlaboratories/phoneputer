@@ -69,6 +69,9 @@
       packages.x86_64-linux = {
         images = self.nixosConfigurations.phoneputer.config.mobile.outputs.android.android-fastboot-images;
         boot-image = self.nixosConfigurations.phoneputer.config.mobile.outputs.android.android-bootimg;
+        # The kernel alone, cross-compiled; copy it to the phone with
+        # `nix copy --to ssh://root@172.16.42.1 .#kernel` (see the readme).
+        kernel = self.nixosConfigurations.phoneputer.config.mobile.boot.stage-1.kernel.package;
       };
     };
 }
