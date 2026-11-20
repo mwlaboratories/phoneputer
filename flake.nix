@@ -15,6 +15,14 @@
     stylix = {
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
+      # Stylix builds GNOME Shell's theme from GNOME Shell's own source; use
+      # the version the phone runs (nixpkgs' gnome-shell), not Stylix's
+      # older pin, or parts of the screens don't fit together (the login
+      # screen's password field). Update it along with GNOME.
+      inputs.gnome-shell = {
+        url = "gitlab:GNOME/gnome-shell/51.1?host=gitlab.gnome.org";
+        flake = false;
+      };
     };
 
     # Home Manager: your own settings as the user nix (see hosts/phoneputer/home.nix)

@@ -11,8 +11,51 @@
 let
   inherit (config.stylix) fonts image polarity;
   size = toString fonts.sizes.applications;
+  colors = config.lib.stylix.colors.withHashtag;
+
+  # Two fixes for the phone on top of Stylix's GNOME Shell theme: the
+  # clock's menu (notifications and calendar) is wider than the screen, so
+  # a narrower notification list makes it fit; and the on-screen keyboard's
+  # keys are nearly black, so a pressed key (a little darker) didn't show:
+  # it lights up in the accent colour instead.
+  phoneShellCss = pkgs.writeText "phone-shell.css" ''
+    .message-list { width: 22em; }
+    .keyboard-key:active, .keyboard-key:checked,
+    .keyboard-key.default-key:active, .keyboard-key.default-key:checked {
+      background-color: ${colors.base0D};
+      color: ${colors.base00};
+    }
+  '';
 in
 {
+  # Added to the theme Stylix builds into GNOME Shell (after Stylix's own
+  # overlay, see overlays.enable below).
+  nixpkgs.overlays = lib.mkAfter [
+    (final: prev: {
+      gnome-shell = prev.gnome-shell.overrideAttrs (old: {
+        postFixup = (old.postFixup or "") + ''
+          gr=$out/share/gnome-shell/gnome-shell-theme.gresource
+          gresource=${pkgs.buildPackages.glib.dev}/bin/gresource
+          mkdir phone-theme && cd phone-theme
+          for r in $($gresource list $gr); do
+            mkdir -p ".$(dirname $r)"
+            $gresource extract $gr $r > ".$r"
+          done
+          for css in org/gnome/shell/theme/gnome-shell-{dark,light}.css; do
+            if [ -e $css ]; then cat ${phoneShellCss} >> $css; fi
+          done
+          {
+            echo '<?xml version="1.0" encoding="UTF-8"?><gresources><gresource prefix="/">'
+            for r in $($gresource list $gr); do echo "<file>''${r#/}</file>"; done
+            echo '</gresource></gresources>'
+          } > theme.xml
+          ${pkgs.buildPackages.glib.dev}/bin/glib-compile-resources --target=$gr theme.xml
+          cd ..
+        '';
+      });
+    })
+  ];
+
   stylix = {
     enable = true;
 
