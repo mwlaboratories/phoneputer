@@ -90,7 +90,6 @@ in
   # (nvim comes from nvim.nix)
   environment.systemPackages = with pkgs; [
     firefox
-    brave
     ghostty     # terminal
     claude-code # coding agents in the terminal: `claude`
     codex       #   and `codex`

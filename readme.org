@@ -29,7 +29,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 
 | Feature               | Status                                                              |
 |-----------------------+---------------------------------------------------------------------|
-| Display + GPU         | Display works; GPU unused (firmware missing at boot), fix pending   |
+| Display + GPU         | Works; Firefox renders WebGL on the GPU                             |
 | WiFi                  | Works                                                               |
 | Bluetooth             | Works                                                               |
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
