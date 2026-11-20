@@ -46,7 +46,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
 | Screen off / sleep    | The phone never sleeps: the power key turns the screen off and on, hold it to log out |
 | Alert slider          | Silent, vibrate or ring, like on Android (silent also turns on Do Not Disturb) |
-| Fingerprint sensor    | Doesn't work: it's only reachable through Qualcomm's closed TrustZone software |
+| Fingerprint sensor    | Not yet: it runs inside Qualcomm's TrustZone; other Snapdragon phones have recently got enrolling and verifying working that way |
 | Reboot                | Works, also to the bootloader (=reboot bootloader=)                 |
 
 * Step 1: Build the Images (on your PC)
