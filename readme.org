@@ -45,6 +45,8 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Screen rotation       | Works, including on the login screen                                |
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
 | Screen off / sleep    | The phone never sleeps: the power key turns the screen off and on, hold it to log out |
+| Alert slider          | Silent, vibrate or ring, like on Android (silent also turns on Do Not Disturb) |
+| Fingerprint sensor    | Doesn't work: it's only reachable through Qualcomm's closed TrustZone software |
 | Reboot                | Works, also to the bootloader (=reboot bootloader=)                 |
 
 * Step 1: Build the Images (on your PC)
