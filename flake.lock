@@ -165,10 +165,10 @@
       "flake": false,
       "locked": {
         "lastModified": 1795133159,
-        "narHash": "sha256-Vl5oMKhfTDtNiu68pntn2dCEt96I0cH/6LRmX0CmTQ0=",
+        "narHash": "sha256-AaQIa/CweAdG0eRrK+JVZ7KFerFt4f1a7bJv2TGst00=",
         "owner": "mwlaboratories",
         "repo": "mobile-nixos",
-        "rev": "79455c46c097b6364f195fc5088c735ba3017a4b",
+        "rev": "2b85b195f77a0988e376e057bcdb9cc764122f29",
         "type": "github"
       },
       "original": {
