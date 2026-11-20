@@ -35,7 +35,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C port            | Works like a laptop's: picks host/device and power role by itself   |
 | USB devices           | Keyboard dongle works, powered by the phone; hub not yet tested     |
-| Cameras               | Rear 30 fps, front ~11.5 fps; video via the hardware encoder at 720p |
+| Cameras               | Rear 30 fps with autofocus; 2nd rear and front dark (no tuning yet); video at 720p via the hardware encoder |
 | Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
 | Microphone            | Broken: records only silence on 7.4 (cause under investigation)     |
 | Earpiece / call audio | Call profile and earpiece now in the audio config; not yet tested   |
