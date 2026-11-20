@@ -2,7 +2,7 @@
 #
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This file adds what a phone needs on top: the Stylix colours in GNOME
-# Shell, the clock hidden from behind the notch, the on-screen keyboard
+# Shell, the clock moved out from behind the notch, the on-screen keyboard
 # with haptic feedback, and the power key turning the screen off and on.
 
 { config, pkgs, stylix, ... }:
@@ -19,6 +19,10 @@ let
 
   phoneTheme = pkgs.writeTextDir "share/themes/Phoneputer/gnome-shell/gnome-shell.css" ''
     @import url("file://${stylixShellTheme}/share/gnome-shell/gnome-shell.css");
+
+    /* The clock's menu (notifications and calendar) is wider than the
+       screen; a narrower notification list makes it fit. */
+    .message-list { width: 22em; }
   '';
 
   # Our own small extension (./osk-haptics): a short vibration on every
@@ -59,7 +63,7 @@ let
 
   extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
-    just-perfection  # hides the clock
+    just-perfection  # moves the clock, hides icons, maximizes windows
   ]) ++ [ oskHaptics oskManual ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
@@ -169,9 +173,11 @@ in
       };
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {
-        # The clock (and with it the notification list) sits behind the
-        # notch; hide it. Notifications still pop up as banners.
-        clock-menu = false;
+        # The clock sits behind the notch in the middle; move it to the
+        # left, next to the workspace dots. Tap it for your notifications
+        # (missed calls, SMS, ...) and the calendar.
+        clock-menu-position = pkgs.lib.gvariant.mkInt32 2; # left
+        clock-menu-position-offset = pkgs.lib.gvariant.mkInt32 1; # after the dots
         support-notifier-type = pkgs.lib.gvariant.mkInt32 0; # no pop-ups
         # The accessibility icon shows in the top bar because the on-screen
         # keyboard counts as an accessibility feature; it only takes room
@@ -182,6 +188,8 @@ in
         # the screen. You can still unmaximize a window.
         window-maximized-on-create = true;
       };
+      # The battery level in numbers in the top bar, like on a phone.
+      "org/gnome/desktop/interface".show-battery-percentage = true;
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).
       "org/gnome/mutter".edge-tiling = true;
