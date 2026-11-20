@@ -149,7 +149,6 @@ in
   # Your packages
   # (nvim comes from nvim.nix)
   environment.systemPackages = with pkgs; [
-    ghostty     # terminal
     claude-code # coding agents in the terminal: `claude`
     codex       #   and `codex`
     luanti      # voxel game

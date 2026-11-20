@@ -23,6 +23,10 @@
       # Stylix colours, plus a notification list that fits the screen)
       # instead of Stylix's, which would also need you logged in to switch.
       stylix.targets.gnome.colors.enable = false;
+
+      # Ghostty, the terminal, in the Stylix colours and see-through
+      # (stylix.opacity.terminal in stylix.nix).
+      programs.ghostty.enable = true;
     };
   };
 }

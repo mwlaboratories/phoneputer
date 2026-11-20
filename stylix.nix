@@ -35,6 +35,9 @@ in
     # Dark or light theme.
     polarity = "dark";
 
+    # The terminal lets the wallpaper show through a little (1 = solid).
+    opacity.terminal = 0.75;
+
     # Stylix themes GNOME Shell by patching and recompiling it, which on a
     # PC means hours of aarch64 emulation. gnome-phone.nix applies the same
     # colours as a shell theme instead, so GNOME Shell comes from the cache.
