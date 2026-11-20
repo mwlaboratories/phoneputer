@@ -96,6 +96,12 @@ in
   # Phone calls (GNOME Calls, with callaudiod for the call audio) and SMS
   # (Chatty). They use the modem through ModemManager; insert a SIM.
   programs.calls.enable = true;
+  # Calls and Chatty run in the background from login, so incoming calls
+  # ring and SMS arrive. Their autostart entries are skipped in GNOME's
+  # systemd session, which wants the units they ship instead; enable those.
+  systemd.packages = [ pkgs.calls pkgs.chatty ];
+  systemd.user.services.calls-daemon.wantedBy = [ "gnome-session.target" ];
+  systemd.user.services."sm.puri.Chatty-daemon".wantedBy = [ "gnome-session.target" ];
   # Chatty links olm (Matrix encryption), which nixpkgs marks insecure.
   # SMS doesn't use it.
   nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
