@@ -7,6 +7,19 @@
 { config, lib, pkgs, ... }:
 
 let
+  # Signal Desktop is an Electron (Chromium) app, which by default doesn't
+  # use the Wayland text input GNOME's on-screen keyboard listens to. These
+  # flags turn it on (text-input-v3 is the version GNOME speaks).
+  signal = pkgs.symlinkJoin {
+    name = "signal-desktop-osk";
+    paths = [ pkgs.signal-desktop ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/signal-desktop \
+        --add-flags "--ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3"
+    '';
+  };
+
   # A website as an app: its own icon in the app grid and dock, opening in
   # Firefox (whose pages bring up the on-screen keyboard). The icon is
   # copied out of the Papirus icon theme, so the phone gets just that file.
@@ -118,7 +131,7 @@ in
     codex       #   and `codex`
     luanti      # voxel game
     chatty      # SMS
-    signal-desktop # Signal (a linked device: Signal on another phone stays the main one)
+    signal      # Signal (a linked device: Signal on another phone stays the main one)
     git
     vim
     wget
