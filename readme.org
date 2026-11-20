@@ -170,13 +170,27 @@ ssh-copy-id root@172.16.42.1
 
 * Changing the Phone
 
-Edit =configuration.nix= in your clone, then build on your PC and push the result to the phone:
+The easiest is on the phone itself. Clone this repository there once, into =~/phoneputer= (that's where =nh= looks):
+
+#+begin_src sh
+git clone https://github.com/mwlaboratories/phoneputer ~/phoneputer
+#+end_src
+
+Then edit =configuration.nix= there and rebuild, in a terminal on the phone or over SSH:
+
+#+begin_src sh
+nh os switch
+#+end_src
+
+Or edit in your clone on your PC and push the result to the phone:
 
 #+begin_src sh
 nixos-rebuild switch --flake .#phoneputer --target-host root@172.16.42.1
 #+end_src
 
-Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged in. Building on the phone itself also works (=nixos-rebuild switch --flake .#phoneputer-native=), but the phone then compiles its own kernel, which takes hours.
+Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged in.
+
+Both ways download nearly everything ready-made from the NixOS binary cache; what's built is what this configuration changes itself (a patched GNOME Shell, for instance). The phone builds that faster than your PC: a PC builds for the phone's ARM processor through emulation, about three times slower than the phone itself (a GNOME Shell build took 89 s on the phone, 254 s on a 16-thread PC). The exception is the kernel: that one your PC cross-compiles, in minutes instead of hours. So when the kernel changes (see [[*Updating the kernel][Updating the kernel]]), rebuild from your PC with the =nixos-rebuild= command above; after that =nh os switch= on the phone finds the kernel already there. (=.#phoneputer-native= builds everything on the phone, the kernel too, which takes hours.)
 
 Your own wallpaper: put an image named =wallpaper.png= or =wallpaper.jpg= next to =flake.nix=, run =git add wallpaper.png= (a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper.
 
