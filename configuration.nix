@@ -53,7 +53,7 @@ in
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   programs.nh = {
     enable = true;
-    flake = "/home/nix/phoneputer";
+    flake = "/home/nix/phoneputer"; # with another user name, change it here too
   };
 
   # WiFi and mobile data (set up WiFi in GNOME Settings → Wi-Fi)

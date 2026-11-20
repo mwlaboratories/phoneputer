@@ -55,7 +55,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 nix build github:mwlaboratories/phoneputer#images
 #+end_src
 
-This builds the kernel natively on your PC (a few minutes), downloads the rest of the system from the NixOS binary cache, and leaves everything you need to flash in =./result/=.
+This builds the kernel natively on your PC (a few minutes), downloads the rest of the system from the NixOS binary cache, builds the one package this configuration changes (GNOME Shell, for the colours on the login screen; a few minutes through emulation), and leaves everything you need to flash in =./result/=.
 
 Want to change something first, like the user name or the packages? Clone the repository, edit =configuration.nix=, and build from there:
 
@@ -146,7 +146,7 @@ If =fastboot= doesn't see the phone, unplug and replug the cable /after/ the pho
 
 * Step 4: First Boot
 
-The first boot takes a little longer while the phone grows its file system to fill the storage. Then GNOME starts; log in as the user =phone= with the password =nixtheplanet=. Change it in a terminal with =passwd=.
+The first boot takes a little longer while the phone grows its file system to fill the storage. Then GNOME starts; log in as the user =nix= with the password =nixtheplanet=. Change it in a terminal with =passwd=.
 
 Connect to WiFi in GNOME Settings → Wi-Fi. That's it: you're running NixOS.
 
@@ -192,9 +192,17 @@ Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged
 
 Both ways download nearly everything ready-made from the NixOS binary cache; what's built is what this configuration changes itself (a patched GNOME Shell, for instance). The phone builds that faster than your PC: a PC builds for the phone's ARM processor through emulation, about three times slower than the phone itself (a GNOME Shell build took 89 s on the phone, 254 s on a 16-thread PC). The exception is the kernel: that one your PC cross-compiles, in minutes instead of hours. So when the kernel changes (see [[*Updating the kernel][Updating the kernel]]), rebuild from your PC with the =nixos-rebuild= command above; after that =nh os switch= on the phone finds the kernel already there. (=.#phoneputer-native= builds everything on the phone, the kernel too, which takes hours.)
 
-Your own wallpaper: put an image named =wallpaper.png= or =wallpaper.jpg= next to =flake.nix=, run =git add wallpaper.png= (a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper.
+Your own wallpaper: replace =wallpaper.jpg= next to =flake.nix= (a =wallpaper.png= works too and goes first; =git add= it, a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper, and the new one shows as soon as the rebuild is done.
 
-To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages:
+To pick up changes to this repository on the phone:
+
+#+begin_src sh
+cd ~/phoneputer
+git pull
+nh os switch
+#+end_src
+
+To pick up new hardware fixes from the Mobile NixOS fork and new NixOS packages, update on your PC, since that can bring a new kernel:
 
 #+begin_src sh
 nix flake update
