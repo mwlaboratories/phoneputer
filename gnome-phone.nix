@@ -83,12 +83,11 @@ in
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
         # The dock. Firefox rather than Brave, because Chromium-based
-        # browsers don't bring up GNOME's on-screen keyboard yet. Discord,
-        # YouTube and Fluid are websites (webApp in configuration.nix).
+        # browsers don't bring up GNOME's on-screen keyboard yet. YouTube
+        # and Fluid are websites (webApp in configuration.nix).
         favorite-apps = [
           "com.mitchellh.ghostty.desktop"
           "firefox.desktop"
-          "discord.desktop"
           "youtube.desktop"
           "org.luanti.luanti.desktop"
           "fluid.desktop"
