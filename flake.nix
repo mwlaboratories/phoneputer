@@ -17,6 +17,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Home Manager: your own settings as the user nix (see home.nix)
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Nixvim: Neovim set up in Nix (see nvim.nix)
     nixvim = {
       url = "github:nix-community/nixvim";
@@ -24,7 +30,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, mobile-nixos, stylix, nixvim, ... }:
+  outputs = { self, nixpkgs, mobile-nixos, stylix, home-manager, nixvim, ... }:
     let
       phone = { buildKernelOn ? null }: nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
@@ -32,8 +38,10 @@
         modules = [
           (import "${mobile-nixos}/lib/configuration.nix" { device = "oneplus-enchilada"; })
           stylix.nixosModules.stylix
+          home-manager.nixosModules.home-manager
           nixvim.nixosModules.nixvim
           ./configuration.nix
+          ./home.nix
           ./stylix.nix
           ./gnome-phone.nix
           ./nvim.nix

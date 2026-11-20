@@ -157,7 +157,7 @@ The USB-C port works like a laptop's: plug in a keyboard or other USB device and
 One extra a laptop doesn't have: plugged into your PC, the phone also shows up as a network device. No WiFi needed:
 
 #+begin_src sh
-ssh phone@172.16.42.1
+ssh nix@172.16.42.1
 #+end_src
 
 There's also a serial console, on the PC as =/dev/ttyACM0= (the number can differ): =screen /dev/ttyACM0 115200=.

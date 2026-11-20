@@ -27,10 +27,12 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # The user you are logged in as. Log in over SSH with this password too.
-  # Change it after the first boot with `passwd`.
-  users.users.phone = {
+  # Change it after the first boot with `passwd`. Your own settings for this
+  # user (wallpaper, colours, ...) are in home.nix.
+  users.users.nix = {
     isNormalUser = true;
-    description = "Phone";
+    description = "Nix";
+    uid = 1001; # the same as the earlier user "phone", so its files stay yours
     initialPassword = "nixtheplanet";
     extraGroups = [ "wheel" "networkmanager" "video" "audio" "dialout" "feedbackd" ];
   };
@@ -38,7 +40,7 @@ in
   # Root, for SSH. Same password; change it with `passwd` as root.
   users.users.root.initialPassword = "nixtheplanet";
 
-  # SSH over WiFi and over the USB-C cable (ssh phone@172.16.42.1).
+  # SSH over WiFi and over the USB-C cable (ssh nix@172.16.42.1).
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
   services.openssh.settings.PasswordAuthentication = true;

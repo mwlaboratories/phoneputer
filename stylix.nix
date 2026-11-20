@@ -63,9 +63,9 @@ in
     };
   };
 
-  # Stylix sets the GNOME wallpaper, dark mode and fonts through Home
-  # Manager, which this config doesn't use. So they are set here as
-  # system-wide defaults; you can still change them in GNOME Settings.
+  # Stylix sets the GNOME wallpaper, dark mode and fonts for the user nix
+  # through Home Manager (home.nix). These are the same as defaults for any
+  # other user you add.
   programs.dconf.profiles.user.databases = [{
     settings = {
       "org/gnome/desktop/background" = {
