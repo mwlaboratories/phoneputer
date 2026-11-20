@@ -82,11 +82,12 @@ in
     };
   }];
 
-  # Boot screen: off for now. With Plymouth (mobile.beautification.splash)
-  # the phone hung at "Started Show Plymouth Boot Screen" on 2026-11-19;
-  # under investigation.
+  # Boot screen: silentBoot sends the kernel's messages to a hidden console
+  # (tty2), so no scrolling text on screen. Plymouth (splash) stays off for
+  # now: its one test boot died, but so do some boots without it (under
+  # investigation in the Mobile NixOS fork).
   mobile.beautification = {
-    silentBoot = false;
+    silentBoot = true;
     splash = false;
   };
 }
