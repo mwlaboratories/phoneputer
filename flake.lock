@@ -164,11 +164,11 @@
     "mobile-nixos": {
       "flake": false,
       "locked": {
-        "lastModified": 1795133159,
-        "narHash": "sha256-AaQIa/CweAdG0eRrK+JVZ7KFerFt4f1a7bJv2TGst00=",
+        "lastModified": 1795136583,
+        "narHash": "sha256-Rj72pM/BMhfO/AL47UYqDKm/ZrKGHLT2wmbli0vLVLA=",
         "owner": "mwlaboratories",
         "repo": "mobile-nixos",
-        "rev": "2b85b195f77a0988e376e057bcdb9cc764122f29",
+        "rev": "6be55358381215da8daebbe351d17e588ec57ee0",
         "type": "github"
       },
       "original": {
