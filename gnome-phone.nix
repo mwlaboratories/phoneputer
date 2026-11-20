@@ -69,6 +69,28 @@ in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
 
+  # The Stylix colours also on the login screen, where extensions (and so
+  # the theme above) don't run. GNOME Shell's built-in theme is replaced,
+  # as Stylix's own GNOME support does, but it is read from /etc instead of
+  # being built into GNOME Shell: GNOME Shell is compiled once (on the PC,
+  # through aarch64 emulation: slow, the first time only), and a new
+  # wallpaper only changes the file in /etc.
+  nixpkgs.overlays = [
+    (final: prev: {
+      gnome-shell = prev.gnome-shell.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [
+          "${stylix}/modules/gnome/shell_remove_dark_mode.patch"
+        ];
+        postFixup = (old.postFixup or "") + ''
+          ln -sf /etc/gnome-shell/gnome-shell-theme.gresource \
+            $out/share/gnome-shell/gnome-shell-theme.gresource
+        '';
+      });
+    })
+  ];
+  environment.etc."gnome-shell/gnome-shell-theme.gresource".source =
+    "${stylixShellTheme}/share/gnome-shell/gnome-shell-theme.gresource";
+
   # The power key: short press turns the screen off or on, holding it for
   # a second logs out (./power-key.py). Shut down from the login screen or
   # the system menu.
