@@ -8,22 +8,17 @@
 { config, pkgs, stylix, ... }:
 
 let
-  # GNOME Shell's own theme in the Stylix colours. Stylix would normally
-  # patch and recompile all of GNOME Shell for this (stylix.nix turns that
-  # off); building just the stylesheet keeps GNOME Shell from the binary
-  # cache. It's loaded as the "Phoneputer" shell theme.
-  stylixShellTheme = pkgs.callPackage "${stylix}/modules/gnome/theme.nix" {
+  # GNOME Shell's theme in the Stylix colours, built by Stylix, with one
+  # change for the phone: the clock's menu (notifications and calendar) is
+  # wider than the screen; a narrower notification list makes it fit.
+  shellTheme = (pkgs.callPackage "${stylix}/modules/gnome/theme.nix" {
     inherit (config.lib.stylix) colors;
     inherit (config.stylix) inputs;
-  };
-
-  phoneTheme = pkgs.writeTextDir "share/themes/Phoneputer/gnome-shell/gnome-shell.css" ''
-    @import url("file://${stylixShellTheme}/share/gnome-shell/gnome-shell.css");
-
-    /* The clock's menu (notifications and calendar) is wider than the
-       screen; a narrower notification list makes it fit. */
-    .message-list { width: 22em; }
-  '';
+  }).overrideAttrs (old: {
+    postPatch = old.postPatch + ''
+      echo '.message-list { width: 22em; }' >> data/theme/gnome-shell-light.scss
+    '';
+  });
 
   # Our own small extension (./osk-haptics): a short vibration on every
   # touch of the on-screen keyboard, which GNOME doesn't do by itself.
@@ -62,19 +57,19 @@ let
   '';
 
   extensions = (with pkgs.gnomeExtensions; [
-    user-themes      # loads the theme above
     just-perfection  # moves the clock, hides icons, maximizes windows
   ]) ++ [ oskHaptics oskManual ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
-  environment.systemPackages = extensions ++ [ phoneTheme ];
+  environment.systemPackages = extensions;
 
-  # The Stylix colours also on the login screen, where extensions (and so
-  # the theme above) don't run. GNOME Shell's built-in theme is replaced,
-  # as Stylix's own GNOME support does, but it is read from /etc instead of
-  # being built into GNOME Shell: GNOME Shell is compiled once (on the PC,
-  # through aarch64 emulation: slow, the first time only), and a new
-  # wallpaper only changes the file in /etc.
+  # The theme above replaces GNOME Shell's built-in one, everywhere,
+  # including the login screen, as Stylix's own GNOME support does. But it
+  # is read from /etc instead of being built into GNOME Shell: GNOME Shell
+  # is compiled once (rebuilding on the phone: about a minute and a half),
+  # and a new wallpaper only changes the file in /etc. GNOME Shell loads
+  # its theme when it starts: new colours in its menus show after you log
+  # out and back in.
   nixpkgs.overlays = [
     (final: prev: {
       gnome-shell = prev.gnome-shell.overrideAttrs (old: {
@@ -89,7 +84,7 @@ in
     })
   ];
   environment.etc."gnome-shell/gnome-shell-theme.gresource".source =
-    "${stylixShellTheme}/share/gnome-shell/gnome-shell-theme.gresource";
+    "${shellTheme}/share/gnome-shell/gnome-shell-theme.gresource";
 
   # The power key: short press turns the screen off or on, holding it for
   # a second logs out (./power-key.py). Shut down from the login screen or
@@ -211,7 +206,6 @@ in
           "signal.desktop"
         ];
       };
-      "org/gnome/shell/extensions/user-theme".name = "Phoneputer";
       "org/gnome/shell/extensions/just-perfection" = {
         # The clock sits behind the notch in the middle; move it to the
         # left, next to the workspace dots. Tap it for your notifications
