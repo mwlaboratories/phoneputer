@@ -70,6 +70,7 @@ in
   # the system menu.
   systemd.user.services.power-key = {
     description = "Power key: screen off/on, hold to log out; screen on for calls";
+    unitConfig.ConditionGroup = "users"; # not in the login screen
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];

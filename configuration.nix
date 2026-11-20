@@ -116,8 +116,16 @@ in
   # ring and SMS arrive. Their autostart entries are skipped in GNOME's
   # systemd session, which wants the units they ship instead; enable those.
   systemd.packages = [ pkgs.calls pkgs.chatty ];
-  systemd.user.services.calls-daemon.wantedBy = [ "gnome-session.target" ];
-  systemd.user.services."sm.puri.Chatty-daemon".wantedBy = [ "gnome-session.target" ];
+  # Only in real users' sessions, not in the login screen's (which is a
+  # GNOME session too, and would ask for permission to use the modem).
+  systemd.user.services.calls-daemon = {
+    wantedBy = [ "gnome-session.target" ];
+    unitConfig.ConditionGroup = "users";
+  };
+  systemd.user.services."sm.puri.Chatty-daemon" = {
+    wantedBy = [ "gnome-session.target" ];
+    unitConfig.ConditionGroup = "users";
+  };
   # Chatty links olm (Matrix encryption), which nixpkgs marks insecure.
   # SMS doesn't use it.
   nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
