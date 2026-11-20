@@ -117,10 +117,25 @@ in
   # SMS doesn't use it.
   nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
 
+  # Firefox, the browser. On a small screen every line counts: no
+  # bookmarks toolbar ("Import bookmarks..."), and no sponsored shortcuts
+  # or stories on the new tab page. Everything else stays changeable in
+  # Firefox's settings. More: https://mozilla.github.io/policy-templates/
+  programs.firefox = {
+    enable = true;
+    policies = {
+      DisplayBookmarksToolbar = "never";
+      FirefoxHome = {
+        SponsoredTopSites = false;
+        SponsoredPocket = false;
+        SponsoredStories = false;
+      };
+    };
+  };
+
   # Your packages
   # (nvim comes from nvim.nix)
   environment.systemPackages = with pkgs; [
-    firefox
     ghostty     # terminal
     claude-code # coding agents in the terminal: `claude`
     codex       #   and `codex`
