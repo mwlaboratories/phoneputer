@@ -84,8 +84,8 @@ in
         enabled-extensions = map (e: e.extensionUuid) extensions;
         # The dock. The browser is Firefox: Chromium-based browsers (Brave,
         # Chrome) handle touch poorly and don't bring up GNOME's on-screen
-        # keyboard yet. YouTube
-        # and Fluid are websites (webApp in configuration.nix).
+        # keyboard yet. YouTube and Fluid are websites (webApp in
+        # configuration.nix).
         favorite-apps = [
           "com.mitchellh.ghostty.desktop"
           "firefox.desktop"
