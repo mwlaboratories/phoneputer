@@ -32,6 +32,17 @@ let
     cp ${./osk-haptics/extension.js} $dir/extension.js
   '';
 
+  # Our own extension (./osk-manual): the on-screen keyboard never pops up
+  # by itself; swipe up from the bottom edge to open it.
+  oskManual = pkgs.runCommand "gnome-shell-extension-osk-manual" {
+    passthru.extensionUuid = "osk-manual@phoneputer";
+  } ''
+    dir=$out/share/gnome-shell/extensions/osk-manual@phoneputer
+    mkdir -p $dir
+    cp ${./osk-manual/metadata.json} $dir/metadata.json
+    cp ${./osk-manual/extension.js} $dir/extension.js
+  '';
+
   # Developer access (./dev-access): lets tools over SSH take screenshots
   # and run GNOME Shell JavaScript, so a coding agent can see and drive
   # the phone like adb on Android. Any program in your session can then
@@ -49,7 +60,7 @@ let
   extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
     just-perfection  # hides the clock
-  ]) ++ [ oskHaptics ] ++ pkgs.lib.optional devAccess devAccessExtension;
+  ]) ++ [ oskHaptics oskManual ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
@@ -159,6 +170,11 @@ in
       "org/gnome/mutter".edge-tiling = true;
       # feedbackd: vibrations only, no click sounds ("full" adds sounds).
       "org/sigxcpu/feedbackd".profile = "quiet";
+      # The on-screen keyboard is always available, so the swipe up from the
+      # bottom edge always opens it (otherwise only in GNOME's "touch mode",
+      # which the phone's buttons, keyboards to Linux, keep breaking). It
+      # never pops up by itself: see osk-manual.
+      "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
       # Like your monitor: after idle-delay (5 min, GNOME Settings → Power)
       # the screen only goes off; the phone never sleeps, so it stays
       # online (calls, SSH, downloads). Costs more battery than sleeping.

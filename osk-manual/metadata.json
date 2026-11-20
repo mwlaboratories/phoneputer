@@ -1,0 +1,7 @@
+{
+  "uuid": "osk-manual@phoneputer",
+  "name": "On-screen keyboard by hand",
+  "description": "The on-screen keyboard never pops up by itself; swipe up from the bottom edge to open it.",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}
