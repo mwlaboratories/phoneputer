@@ -40,7 +40,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Microphone            | Records (top and bottom mic), also through PipeWire                 |
 | Earpiece / call audio | No audio in calls yet (either direction); being worked on           |
 | Modem                 | 4G/LTE with mobile data (~20 Mbit/s); no 5G on this modem; no VoLTE yet |
-| Calls / SMS           | Calls ring and connect both ways (over 2G), no audio yet; sending SMS works |
+| Calls / SMS           | SMS sending and receiving work (Chatty); calls ring and connect both ways (over 2G), call audio being fixed |
 | Sensors               | Light, compass, proximity and accelerometer work, also after reboot |
 | Screen rotation       | Works, including on the login screen                                |
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
