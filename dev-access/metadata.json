@@ -1,0 +1,7 @@
+{
+  "uuid": "dev-access@phoneputer",
+  "name": "Developer access",
+  "description": "Puts GNOME Shell in unsafe mode, so tools over SSH can take screenshots and run Shell JavaScript (org.gnome.Shell.Eval).",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}

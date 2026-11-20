@@ -32,10 +32,24 @@ let
     cp ${./osk-haptics/extension.js} $dir/extension.js
   '';
 
+  # Developer access (./dev-access): lets tools over SSH take screenshots
+  # and run GNOME Shell JavaScript, so a coding agent can see and drive
+  # the phone like adb on Android. Any program in your session can then
+  # take screenshots too; set to false to turn it off.
+  devAccess = true;
+  devAccessExtension = pkgs.runCommand "gnome-shell-extension-dev-access" {
+    passthru.extensionUuid = "dev-access@phoneputer";
+  } ''
+    dir=$out/share/gnome-shell/extensions/dev-access@phoneputer
+    mkdir -p $dir
+    cp ${./dev-access/metadata.json} $dir/metadata.json
+    cp ${./dev-access/extension.js} $dir/extension.js
+  '';
+
   extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
     just-perfection  # hides the clock
-  ]) ++ [ oskHaptics ];
+  ]) ++ [ oskHaptics ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
@@ -54,6 +68,19 @@ in
       Restart = "on-failure";
     };
   };
+  # The phone never sleeps. GNOME still tries to when the power key is
+  # pressed with the screen off (whatever power-button-action says), so
+  # sleeping is refused outright; GNOME then also drops "Suspend" from its
+  # menu. Shutting down and restarting are unaffected.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function (action, subject) {
+      if (action.id.indexOf("org.freedesktop.login1.suspend") == 0 ||
+          action.id.indexOf("org.freedesktop.login1.hibernate") == 0 ||
+          action.id.indexOf("org.freedesktop.login1.hybrid-sleep") == 0) {
+        return polkit.Result.NO;
+      }
+    });
+  '';
   # The system itself ignores the key (its default is to shut down).
   services.logind.settings.Login = {
     HandlePowerKey = "ignore";
