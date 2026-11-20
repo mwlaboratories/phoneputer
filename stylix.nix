@@ -7,6 +7,10 @@
 # to flake.nix, `git add` it (a flake only sees files git knows about), and
 # rebuild. Wallpaper and colours change together. Without one, the phone
 # uses the NixOS "waterfall" wallpaper.
+#
+# The wallpaper.jpg here is the Helix Nebula (Hubble Space Telescope, NASA/
+# ESA; portrait crop from wallhaven.cc/w/2klrm9), its near-black sky made
+# pure black so the OLED screen's pixels stay off there.
 
 { config, pkgs, lib, ... }:
 
