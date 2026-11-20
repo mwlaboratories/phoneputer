@@ -32,6 +32,13 @@ in
     # theme when it starts: new colours in its menus show after you log out
     # and back in.
     overlays.enable = true;
+    # Stylix's other two overlays rebuild far more than they change: a
+    # colour scheme built into GtkSourceView recompiles every app that uses
+    # it (Files, Text Editor, Papers, ...), and the recoloured NixOS logo
+    # what shows it. The text editor gets the colours from Home Manager
+    # instead, without rebuilding anything.
+    targets.gtksourceview.enable = false;
+    targets.nixos-icons.enable = false;
 
     # GNOME's own fonts: clear on a small, sharp screen.
     fonts = {
