@@ -1,0 +1,7 @@
+{
+  "uuid": "osk-tap@phoneputer",
+  "name": "On-screen keyboard on tap",
+  "description": "Opens the on-screen keyboard when a text field is tapped in apps that don't ask for it themselves (Electron/Chromium apps such as Signal).",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}

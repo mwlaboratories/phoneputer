@@ -32,6 +32,17 @@ let
     cp ${./osk-haptics/extension.js} $dir/extension.js
   '';
 
+  # Our own extension (./osk-tap): the on-screen keyboard also comes up in
+  # Electron/Chromium apps such as Signal, which don't ask GNOME for it.
+  oskTap = pkgs.runCommand "gnome-shell-extension-osk-tap" {
+    passthru.extensionUuid = "osk-tap@phoneputer";
+  } ''
+    dir=$out/share/gnome-shell/extensions/osk-tap@phoneputer
+    mkdir -p $dir
+    cp ${./osk-tap/metadata.json} $dir/metadata.json
+    cp ${./osk-tap/extension.js} $dir/extension.js
+  '';
+
   # Developer access (./dev-access): lets tools over SSH take screenshots
   # and run GNOME Shell JavaScript, so a coding agent can see and drive
   # the phone like adb on Android. Any program in your session can then
@@ -49,7 +60,7 @@ let
   extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
     just-perfection  # hides the clock
-  ]) ++ [ oskHaptics ] ++ pkgs.lib.optional devAccess devAccessExtension;
+  ]) ++ [ oskHaptics oskTap ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
