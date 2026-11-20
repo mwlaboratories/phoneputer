@@ -1,26 +1,49 @@
-# Your phone's configuration: GNOME, a user, and your packages.
+# Your phone: a user, its wallpaper and the system around it. Your own
+# apps and settings are in ./home.nix.
 #
 # All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors,
-# SSH over the USB-C cable) comes from the Mobile NixOS fork, so this file is
-# only about what you want on the phone. Change anything here.
+# SSH over the USB-C cable) comes from the Mobile NixOS fork; the rest of
+# what makes it a phone is in ../../modules/nixos. Change anything here.
 
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
+  imports = [
+    ../../modules/nixos/phone.nix
+    ../../modules/nixos/stylix.nix
+    ../../modules/nixos/gnome
+    ../../modules/nixos/nvim.nix
+    ../../modules/nixos/power.nix
+  ];
+
   networking.hostName = "phoneputer";
+
+  # The wallpaper; the colours of the whole phone are taken from it. Put
+  # your own image here (`git add` it: a flake only sees files git knows
+  # about) and rebuild. This one: a hammerhead shark over the sea floor.
+  stylix.image = ./wallpaper.jpg;
 
   # Allow unfree packages (needed for OnePlus firmware)
   nixpkgs.config.allowUnfree = true;
 
   # The user you are logged in as. Log in over SSH with this password too.
-  # Change it after the first boot with `passwd`. Your own settings for this
-  # user (wallpaper, colours, ...) are in home.nix.
+  # Change it after the first boot with `passwd`.
   users.users.nix = {
     isNormalUser = true;
     description = "Nix";
     uid = 1001; # the same as the earlier user "phone", so its files stay yours
     initialPassword = "nixtheplanet";
     extraGroups = [ "wheel" "networkmanager" "video" "audio" "dialout" "feedbackd" ];
+  };
+
+  # The user's own apps and settings, through Home Manager.
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    # A file Home Manager wants to manage that's already there is kept as
+    # <name>.hm-backup instead of stopping the switch.
+    backupFileExtension = "hm-backup";
+    users.nix = import ./home.nix;
   };
 
   # Root, for SSH. Same password; change it with `passwd` as root.
@@ -42,26 +65,10 @@
     flake = "/home/nix/phoneputer"; # with another user name, change it here too
   };
 
-  # WiFi and mobile data (set up WiFi in GNOME Settings → Wi-Fi)
+  # WiFi and mobile data (set up WiFi in GNOME Settings → Wi-Fi; mobile
+  # data is in ../../modules/nixos/phone.nix)
   networking.networkmanager.enable = true;
   networking.modemmanager.enable = true;
-  # Mobile data with whatever SIM is in the phone: NetworkManager picks the
-  # APN from the SIM's operator. The SIM PIN isn't stored here (the config
-  # is readable by every program on the phone); GNOME asks for it after
-  # boot, like any phone.
-  networking.networkmanager.ensureProfiles.profiles.mobile-data = {
-    connection = {
-      id = "Mobile data";
-      type = "gsm";
-      autoconnect = true;
-      # Keep retrying: after the modem restarts or comes back from a call
-      # it can refuse a few attempts before it's ready.
-      autoconnect-retries = 0;
-    };
-    gsm.auto-config = true;
-    ipv4.method = "auto";
-    ipv6.method = "auto";
-  };
   hardware.bluetooth.enable = true;
 
   # GNOME. You log in with your password; that same password unlocks the
@@ -95,27 +102,6 @@
     gnome-disk-utility gnome-connections
   ];
 
-  # Phone calls (GNOME Calls, with callaudiod for the call audio) and SMS
-  # (Chatty). They use the modem through ModemManager; insert a SIM.
-  programs.calls.enable = true;
-  # Calls and Chatty run in the background from login, so incoming calls
-  # ring and SMS arrive. Their autostart entries are skipped in GNOME's
-  # systemd session, which wants the units they ship instead; enable those.
-  systemd.packages = [ pkgs.calls pkgs.chatty ];
-  # Only in real users' sessions, not in the login screen's (which is a
-  # GNOME session too, and would ask for permission to use the modem).
-  systemd.user.services.calls-daemon = {
-    wantedBy = [ "gnome-session.target" ];
-    unitConfig.ConditionGroup = "users";
-  };
-  systemd.user.services."sm.puri.Chatty-daemon" = {
-    wantedBy = [ "gnome-session.target" ];
-    unitConfig.ConditionGroup = "users";
-  };
-  # Chatty links olm (Matrix encryption), which nixpkgs marks insecure.
-  # SMS doesn't use it.
-  nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
-
   # Firefox, the browser. On a small screen every line counts: no
   # bookmarks toolbar ("Import bookmarks..."), and no sponsored shortcuts
   # or stories on the new tab page. Everything else stays changeable in
@@ -132,10 +118,9 @@
     };
   };
 
-  # Programs for everyone on the phone, and what the phone itself needs.
-  # Your own apps are in home.nix; nvim comes from nvim.nix.
+  # Programs for everyone on the phone. Your own apps are in ./home.nix;
+  # nvim comes from ../../modules/nixos/nvim.nix.
   environment.systemPackages = with pkgs; [
-    chatty      # SMS (its background service is set up above)
     git
     vim
     wget

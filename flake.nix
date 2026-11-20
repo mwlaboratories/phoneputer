@@ -11,19 +11,19 @@
       flake = false; # We import it directly, not as a flake
     };
 
-    # Stylix: one wallpaper themes the whole phone (see stylix.nix)
+    # Stylix: one wallpaper themes the whole phone (see modules/nixos/stylix.nix)
     stylix = {
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Home Manager: your own settings as the user nix (see home.nix)
+    # Home Manager: your own settings as the user nix (see hosts/phoneputer/home.nix)
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Nixvim: Neovim set up in Nix (see nvim.nix)
+    # Nixvim: Neovim set up in Nix (see modules/nixos/nvim.nix)
     nixvim = {
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -40,12 +40,7 @@
           stylix.nixosModules.stylix
           home-manager.nixosModules.home-manager
           nixvim.nixosModules.nixvim
-          ./configuration.nix
-          ./home.nix
-          ./stylix.nix
-          ./gnome-phone.nix
-          ./nvim.nix
-          ./power.nix
+          ./hosts/phoneputer/configuration.nix
           {
             # Compile the kernel natively on the PC instead of through aarch64
             # emulation: minutes instead of hours. Everything else comes from

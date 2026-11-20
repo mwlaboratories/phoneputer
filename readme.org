@@ -6,7 +6,7 @@
 
 * Overview
 
-This tutorial puts NixOS with GNOME on a OnePlus 6 (codename /enchilada/). You build everything on your PC with one command, flash it once, and the phone boots straight into GNOME. After that you change the phone like any NixOS machine: edit =configuration.nix= and rebuild.
+This tutorial puts NixOS with GNOME on a OnePlus 6 (codename /enchilada/). You build everything on your PC with one command, flash it once, and the phone boots straight into GNOME. After that you change the phone like any NixOS machine: edit its configuration and rebuild.
 
 Video tutorial: https://youtu.be/yxfDNqZ9WTM (it shows an older two-stage install; the phone preparation is the same)
 
@@ -57,7 +57,7 @@ nix build github:mwlaboratories/phoneputer#images
 
 This builds the kernel natively on your PC (a few minutes), downloads the rest of the system from the NixOS binary cache, builds the one package this configuration changes (GNOME Shell, for the colours on the login screen; a few minutes through emulation), and leaves everything you need to flash in =./result/=.
 
-Want to change something first, like the user name or the packages? Clone the repository, edit =configuration.nix=, and build from there:
+Want to change something first, like the user name or the packages? Clone the repository, edit =hosts/phoneputer/configuration.nix= (or =home.nix= next to it for your apps), and build from there:
 
 #+begin_src sh
 git clone https://github.com/mwlaboratories/phoneputer.git
@@ -176,7 +176,7 @@ The easiest is on the phone itself. Clone this repository there once, into =~/ph
 git clone https://github.com/mwlaboratories/phoneputer ~/phoneputer
 #+end_src
 
-Then edit =configuration.nix= there and rebuild, in a terminal on the phone or over SSH:
+Then edit the configuration there and rebuild, in a terminal on the phone or over SSH:
 
 #+begin_src sh
 nh os switch
@@ -192,7 +192,7 @@ Use the phone's WiFi address instead of =172.16.42.1= if the cable isn't plugged
 
 Both ways download nearly everything ready-made from the NixOS binary cache; what's built is what this configuration changes itself (a patched GNOME Shell, for instance). The phone builds that faster than your PC: a PC builds for the phone's ARM processor through emulation, about three times slower than the phone itself (a GNOME Shell build took 89 s on the phone, 254 s on a 16-thread PC). The exception is the kernel: that one your PC cross-compiles, in minutes instead of hours. So when the kernel changes (see [[*Updating the kernel][Updating the kernel]]), rebuild from your PC with the =nixos-rebuild= command above; after that =nh os switch= on the phone finds the kernel already there. (=.#phoneputer-native= builds everything on the phone, the kernel too, which takes hours.)
 
-Your own wallpaper: replace =wallpaper.jpg= next to =flake.nix= (a =wallpaper.png= works too and goes first; =git add= it, a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper, and the new one shows as soon as the rebuild is done.
+Your own wallpaper: replace =hosts/phoneputer/wallpaper.jpg= (or point =stylix.image= in =configuration.nix= at another image; =git add= it, a flake only sees files git knows about), and rebuild. The colours of the whole phone follow the wallpaper, and the new one shows as soon as the rebuild is done.
 
 To pick up changes to this repository on the phone:
 
@@ -246,6 +246,30 @@ mmcli -m 0
 Without a SIM, =mmcli -m 0= reports state =failed= with reason =sim-missing=. That is expected.
 
 * How It Works
+
+** This repository
+
+#+begin_example
+flake.nix                     inputs (nixpkgs, the Mobile NixOS fork, Stylix, Home Manager, Nixvim)
+hosts/phoneputer/
+  configuration.nix           the phone: user, wallpaper, browser, system packages
+  home.nix                    your apps and settings (Home Manager)
+  wallpaper.jpg
+modules/nixos/
+  gnome/                      GNOME made for a phone screen
+    default.nix               scale, clock, full-screen apps, on-screen keyboard, defaults
+    theme.nix                 GNOME Shell and the login screen in the Stylix colours
+    buttons.nix               power key and alert slider (power-key.py, alert-slider.py)
+    extensions/               small GNOME Shell extensions of our own
+  phone.nix                   mobile data, calls and SMS
+  stylix.nix                  colours and fonts from the wallpaper
+  power.nix                   power modes (TuneD)
+  nvim.nix                    Neovim
+#+end_example
+
+The hardware itself is not in this repository:
+
+** The Mobile NixOS fork
 
 Upstream Mobile NixOS still ships the OnePlus 6 kernel at Linux 6.4, and its kernel build doesn't install kernel modules when cross-compiling. The Qualcomm modem stack (QRTR, QMI, RMNET, IPA) is built entirely from modules, so upstream never brings the modem up. The [[https://github.com/mwlaboratories/mobile-nixos][fork]] fixes that and adds the rest of the hardware:
 
