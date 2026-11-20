@@ -145,20 +145,14 @@
     "gnome-shell": {
       "flake": false,
       "locked": {
-        "host": "gitlab.gnome.org",
-        "lastModified": 1776175984,
-        "narHash": "sha256-RJFlFW8GiMei6oqUGrMkGEvVqOH8U7Q8abc1yK4VKD8=",
-        "owner": "GNOME",
-        "repo": "gnome-shell",
-        "rev": "e0fdc4c13250e9a9b8ea9594c83925274f4a5dca",
-        "type": "gitlab"
+        "lastModified": 1791976906,
+        "narHash": "sha256-db74Fh1AhT+PrDHAHD7UjcmQn37nlhCmo4uffe1Jw+A=",
+        "type": "tarball",
+        "url": "https://download.gnome.org/sources/gnome-shell/51/gnome-shell-51.1.tar.xz"
       },
       "original": {
-        "host": "gitlab.gnome.org",
-        "owner": "GNOME",
-        "ref": "50.1",
-        "repo": "gnome-shell",
-        "type": "gitlab"
+        "type": "tarball",
+        "url": "https://download.gnome.org/sources/gnome-shell/51/gnome-shell-51.1.tar.xz"
       }
     },
     "home-manager": {

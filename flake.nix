@@ -20,7 +20,7 @@
       # older pin, or parts of the screens don't fit together (the login
       # screen's password field). Update it along with GNOME.
       inputs.gnome-shell = {
-        url = "gitlab:GNOME/gnome-shell/51.1?host=gitlab.gnome.org";
+        url = "https://download.gnome.org/sources/gnome-shell/51/gnome-shell-51.1.tar.xz";
         flake = false;
       };
     };
