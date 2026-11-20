@@ -3,7 +3,7 @@
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This file adds what a phone needs on top: the Stylix colours in GNOME
 # Shell, the clock hidden from behind the notch, the on-screen keyboard
-# with haptic feedback, and sleeping when the screen goes dark.
+# with haptic feedback, and the power key turning the screen off and on.
 
 { config, pkgs, stylix, ... }:
 
@@ -39,6 +39,28 @@ let
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
+
+  # The power key: short press turns the screen off or on, holding it for
+  # a second logs out (./power-key.py). Shut down from the login screen or
+  # the system menu.
+  systemd.user.services.power-key = {
+    description = "Power key: screen off/on, hold to log out";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ pkgs.glib pkgs.gnome-session ];
+    serviceConfig = {
+      ExecStart = "${pkgs.python3.withPackages (ps: [ ps.evdev ])}/bin/python3 ${./power-key.py}";
+      Restart = "on-failure";
+    };
+  };
+  # Let the logged-in user read the power key. The rule has to run before
+  # udev's seat rules (73-*), which turn "uaccess" into access.
+  services.udev.packages = [
+    (pkgs.writeTextDir "lib/udev/rules.d/70-power-key.rules" ''
+      SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="*pwrkey*", TAG+="uaccess"
+    '')
+  ];
 
   # Display scale 150%. GNOME picks 250% by itself, which leaves a screen
   # only 432 pixels wide in GNOME's terms: menus run off the edge and
@@ -111,17 +133,15 @@ in
       # phone's buttons (volume, alert slider, power: keyboards to Linux)
       # get in the way of.
       "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
-      # Like a phone: when the screen goes dark it sleeps, so one press of
-      # the power key always wakes it. GNOME blanks the screen after
-      # idle-delay (5 min by default, GNOME Settings → Power) and only
-      # suspends after 15 min; a press in between woke the screen and then
-      # suspended at once. If you change the blank delay, match it here.
+      # Like your monitor: after idle-delay (5 min, GNOME Settings → Power)
+      # the screen only goes off; the phone never sleeps, so it stays
+      # online (calls, SSH, downloads). Costs more battery than sleeping.
       "org/gnome/settings-daemon/plugins/power" = {
-        sleep-inactive-battery-timeout = pkgs.lib.gvariant.mkInt32 300;
-        sleep-inactive-ac-timeout = pkgs.lib.gvariant.mkInt32 300;
-        # The power key turns the screen off (and sleeps); press it again
-        # to turn the screen back on.
-        power-button-action = "suspend";
+        sleep-inactive-battery-type = "nothing";
+        sleep-inactive-ac-type = "nothing";
+        # The power key turns the screen off and on (powerKeyScreen
+        # below), not GNOME's suspend.
+        power-button-action = "nothing";
       };
       # No lock screen: when the screen comes back on you're straight back
       # in your session, apps as you left them, without typing your
