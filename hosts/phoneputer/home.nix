@@ -45,11 +45,21 @@ in
   };
 
   # Ghostty, the terminal, in the Stylix colours and see-through
-  # (stylix.opacity.terminal in ../../modules/nixos/stylix.nix).
+  # (stylix.opacity.terminal in ../../modules/nixos/stylix.nix), with the
+  # wallpaper blurred behind it (the Blur my Shell extension). Blur my
+  # Shell's own opacity and "make the focused window solid" stay off: the
+  # terminal is always the focused window on a phone.
   programs.ghostty.enable = true;
+  dconf.settings."org/gnome/shell/extensions/blur-my-shell/applications" = {
+    blur = true;
+    whitelist = [ "com.mitchellh.ghostty" ];
+    opacity = lib.hm.gvariant.mkInt32 255;
+    dynamic-opacity = false;
+  };
 
-  # GNOME Shell's theme comes from ../../modules/nixos/gnome/theme.nix (the
-  # Stylix colours, plus a notification list that fits the screen), not
-  # from Stylix's User Themes setup, which needs you logged in to switch.
+  # GNOME Shell already has the Stylix colours built in (stylix.nix). The
+  # extra copy Stylix would load per user, through the User Themes
+  # extension, isn't needed, and its reload stops a rebuild done while
+  # you're logged out.
   stylix.targets.gnome.colors.enable = false;
 }

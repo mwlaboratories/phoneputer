@@ -3,8 +3,8 @@
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This adds what a phone needs on top: the clock moved out from behind the
 # notch, apps full screen, the on-screen keyboard by hand and with haptic
-# feedback, and the defaults below. The Stylix colours are in ./theme.nix,
-# the power key and alert slider in ./buttons.nix.
+# feedback, and the defaults below. The power key and alert slider are in
+# ./buttons.nix.
 
 { pkgs, ... }:
 
@@ -27,6 +27,7 @@ let
 
   extensions = (with pkgs.gnomeExtensions; [
     just-perfection  # moves the clock, hides icons, maximizes windows
+    blur-my-shell    # blur behind see-through windows (Ghostty: see home.nix) and the top bar
   ]) ++ [
     (extension "osk-haptics") # a short vibration on every key of the on-screen keyboard
     (extension "osk-manual")  # the on-screen keyboard only opens with a swipe up from the bottom edge
@@ -34,7 +35,6 @@ let
 in
 {
   imports = [
-    ./theme.nix
     ./buttons.nix
   ];
 

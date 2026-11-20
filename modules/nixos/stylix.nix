@@ -26,10 +26,12 @@ in
     # The terminal lets the wallpaper show through a little (1 = solid).
     opacity.terminal = 0.75;
 
-    # Stylix themes GNOME Shell by patching and recompiling it, which on a
-    # PC means hours of aarch64 emulation. gnome-phone.nix applies the same
-    # colours as a shell theme instead, so GNOME Shell comes from the cache.
-    overlays.enable = false;
+    # Stylix themes GNOME Shell (top bar, menus, login screen) by building
+    # the colours into it, so a new wallpaper rebuilds GNOME Shell: about a
+    # minute and a half when you rebuild on the phone. GNOME Shell loads its
+    # theme when it starts: new colours in its menus show after you log out
+    # and back in.
+    overlays.enable = true;
 
     # GNOME's own fonts: clear on a small, sharp screen.
     fonts = {

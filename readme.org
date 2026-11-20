@@ -258,11 +258,10 @@ hosts/phoneputer/
 modules/nixos/
   gnome/                      GNOME made for a phone screen
     default.nix               scale, clock, full-screen apps, on-screen keyboard, defaults
-    theme.nix                 GNOME Shell and the login screen in the Stylix colours
     buttons.nix               power key and alert slider (power-key.py, alert-slider.py)
     extensions/               small GNOME Shell extensions of our own
   phone.nix                   mobile data, calls and SMS
-  stylix.nix                  colours and fonts from the wallpaper
+  stylix.nix                  colours and fonts from the wallpaper, also in GNOME Shell and the login screen
   power.nix                   power modes (TuneD)
   nvim.nix                    Neovim
 #+end_example
