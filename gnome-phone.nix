@@ -119,7 +119,16 @@ in
       "org/gnome/settings-daemon/plugins/power" = {
         sleep-inactive-battery-timeout = pkgs.lib.gvariant.mkInt32 300;
         sleep-inactive-ac-timeout = pkgs.lib.gvariant.mkInt32 300;
+        # The power key turns the screen off (and sleeps); press it again
+        # to turn the screen back on.
+        power-button-action = "suspend";
       };
+      # No lock screen: when the screen comes back on you're straight back
+      # in your session, apps as you left them, without typing your
+      # password. Anyone holding the phone can use it then; turn
+      # "Automatic Screen Lock" on in GNOME Settings → Privacy if you want
+      # the password back.
+      "org/gnome/desktop/screensaver".lock-enabled = false;
     };
     # The extensions come from this file, not from the Extensions app: the
     # list is locked, so every user gets exactly these (also users who had
