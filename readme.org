@@ -25,7 +25,7 @@ All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors, SSH
 
 * What works
 
-Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
+Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 
 | Feature               | Status                                                              |
 |-----------------------+---------------------------------------------------------------------|
@@ -45,6 +45,7 @@ Measured on 2026-11-19 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Screen rotation       | Works, including on the login screen                                |
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
 | Suspend               | Works; the modem after resume is not yet tested with a SIM          |
+| Reboot                | Works, also to the bootloader (=reboot bootloader=)                 |
 
 * Step 1: Build the Images (on your PC)
 
