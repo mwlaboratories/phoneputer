@@ -106,6 +106,15 @@ in
     '')
   ];
 
+  # The phone's internal storage holds dozens of Android partitions
+  # (system, vendor, modem, ...); without this Files lists a dozen of them
+  # in its sidebar ("/", "odm", "34 MB Volume", ...). Your files are in your
+  # home folder, and the whole disk is under Other Locations → Computer.
+  # A USB stick isn't on this storage chip, so it still shows up.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="block", ENV{ID_PATH}=="platform-1d84000.ufshc-*", ENV{UDISKS_IGNORE}="1"
+  '';
+
   # Display scale 150%. GNOME picks 250% by itself, which leaves a screen
   # only 432 pixels wide in GNOME's terms: menus run off the edge and
   # dragging windows doesn't work well. At 150% it's 720 wide. This is the
@@ -164,6 +173,14 @@ in
         # notch; hide it. Notifications still pop up as banners.
         clock-menu = false;
         support-notifier-type = pkgs.lib.gvariant.mkInt32 0; # no pop-ups
+        # The accessibility icon shows in the top bar because the on-screen
+        # keyboard counts as an accessibility feature; it only takes room
+        # next to the notch. Settings → Accessibility still has it all.
+        accessibility-menu = false;
+        # Every app opens full screen, like on a phone. Otherwise most apps
+        # (Files, Chatty, Calls, Signal, ...) open as a small window on half
+        # the screen. You can still unmaximize a window.
+        window-maximized-on-create = true;
       };
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).

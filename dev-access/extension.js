@@ -5,6 +5,11 @@
 // session may (org.gnome.Shell.Screenshot, org.gnome.Shell.Eval). That's
 // what lets a coding agent working over SSH see the screen and drive
 // GNOME, like adb on Android. Turn it off in gnome-phone.nix (devAccess).
+//
+// It stays on while the screen is off ("unlock-dialog" in metadata.json):
+// otherwise GNOME turns it off with the screen, tools lose access until
+// the screen is back on, and every time it comes back GNOME pops up
+// "System was put in unsafe mode" again.
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
