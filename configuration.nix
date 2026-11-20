@@ -46,6 +46,20 @@ in
   # WiFi and mobile data (set up WiFi in GNOME Settings → Wi-Fi)
   networking.networkmanager.enable = true;
   networking.modemmanager.enable = true;
+  # Mobile data with whatever SIM is in the phone: NetworkManager picks the
+  # APN from the SIM's operator. The SIM PIN isn't stored here (the config
+  # is readable by every program on the phone); GNOME asks for it after
+  # boot, like any phone.
+  networking.networkmanager.ensureProfiles.profiles.mobile-data = {
+    connection = {
+      id = "Mobile data";
+      type = "gsm";
+      autoconnect = true;
+    };
+    gsm.auto-config = true;
+    ipv4.method = "auto";
+    ipv6.method = "auto";
+  };
   hardware.bluetooth.enable = true;
 
   # GNOME. You log in with your password; that same password unlocks the
