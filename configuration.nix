@@ -79,6 +79,13 @@ in
     gnome-disk-utility gnome-connections
   ];
 
+  # Phone calls (GNOME Calls, with callaudiod for the call audio) and SMS
+  # (Chatty). They use the modem through ModemManager; insert a SIM.
+  programs.calls.enable = true;
+  # Chatty links olm (Matrix encryption), which nixpkgs marks insecure.
+  # SMS doesn't use it.
+  nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
+
   # Your packages
   # (nvim comes from nvim.nix)
   environment.systemPackages = with pkgs; [
@@ -88,6 +95,7 @@ in
     claude-code # coding agents in the terminal: `claude`
     codex       #   and `codex`
     luanti      # voxel game
+    chatty      # SMS
     git
     vim
     wget
