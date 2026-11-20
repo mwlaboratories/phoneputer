@@ -32,17 +32,6 @@ let
     cp ${./osk-haptics/extension.js} $dir/extension.js
   '';
 
-  # Our own extension (./osk-tap): the on-screen keyboard also comes up in
-  # Electron/Chromium apps such as Signal, which don't ask GNOME for it.
-  oskTap = pkgs.runCommand "gnome-shell-extension-osk-tap" {
-    passthru.extensionUuid = "osk-tap@phoneputer";
-  } ''
-    dir=$out/share/gnome-shell/extensions/osk-tap@phoneputer
-    mkdir -p $dir
-    cp ${./osk-tap/metadata.json} $dir/metadata.json
-    cp ${./osk-tap/extension.js} $dir/extension.js
-  '';
-
   # Developer access (./dev-access): lets tools over SSH take screenshots
   # and run GNOME Shell JavaScript, so a coding agent can see and drive
   # the phone like adb on Android. Any program in your session can then
@@ -60,7 +49,7 @@ let
   extensions = (with pkgs.gnomeExtensions; [
     user-themes      # loads the theme above
     just-perfection  # hides the clock
-  ]) ++ [ oskHaptics oskTap ] ++ pkgs.lib.optional devAccess devAccessExtension;
+  ]) ++ [ oskHaptics ] ++ pkgs.lib.optional devAccess devAccessExtension;
 in
 {
   environment.systemPackages = extensions ++ [ phoneTheme ];
@@ -149,8 +138,8 @@ in
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
         # The dock: files, browser, phone and Signal. The browser is Firefox:
-        # Chromium-based browsers (Brave, Chrome) handle touch poorly and
-        # don't bring up GNOME's on-screen keyboard yet.
+        # Chromium-based browsers (Brave, Chrome) handle touch poorly. The
+        # on-screen keyboard comes up with a swipe up from the bottom edge.
         favorite-apps = [
           "org.gnome.Nautilus.desktop"
           "firefox.desktop"
@@ -170,11 +159,6 @@ in
       "org/gnome/mutter".edge-tiling = true;
       # feedbackd: vibrations only, no click sounds ("full" adds sounds).
       "org/sigxcpu/feedbackd".profile = "quiet";
-      # On-screen keyboard always on: it comes up whenever a text field is
-      # tapped. GNOME's automatic mode only works in "touch mode", which the
-      # phone's buttons (volume, alert slider, power: keyboards to Linux)
-      # get in the way of.
-      "org/gnome/desktop/a11y/applications".screen-keyboard-enabled = true;
       # Like your monitor: after idle-delay (5 min, GNOME Settings → Power)
       # the screen only goes off; the phone never sleeps, so it stays
       # online (calls, SSH, downloads). Costs more battery than sleeping.
