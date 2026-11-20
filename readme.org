@@ -35,16 +35,16 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C port            | Works like a laptop's: picks host/device and power role by itself   |
 | USB devices           | Keyboard dongle works, powered by the phone; hub not yet tested     |
-| Cameras               | Rear 30 fps with autofocus; 2nd rear and front dark (no tuning yet); video at 720p via the hardware encoder |
+| Cameras               | Main rear 30 fps with autofocus; 2nd rear: focus motor doesn't move yet; 2nd rear and front dark (tuning in progress); video at 720p via the hardware encoder |
 | Speaker               | Works ("Speakers Output" in GNOME Settings → Sound)                 |
-| Microphone            | Broken: records only silence on 7.4 (cause under investigation)     |
-| Earpiece / call audio | Call profile and earpiece now in the audio config; not yet tested   |
-| Modem                 | Starts at boot; 4G/LTE (the most this modem does: no 5G)            |
-| Calls / SMS           | GNOME Calls and Chatty installed; not yet tested with a SIM         |
+| Microphone            | Records (top and bottom mic), also through PipeWire                 |
+| Earpiece / call audio | No audio in calls yet (either direction); being worked on           |
+| Modem                 | 4G/LTE with mobile data (~20 Mbit/s); no 5G on this modem; no VoLTE yet |
+| Calls / SMS           | Incoming calls ring and can be answered (over 2G); SMS not yet tested |
 | Sensors               | Light, compass, proximity and accelerometer work, also after reboot |
 | Screen rotation       | Works, including on the login screen                                |
 | Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
-| Suspend               | Works; the modem after resume is not yet tested with a SIM          |
+| Screen off / sleep    | The phone never sleeps: the power key turns the screen off and on, hold it to log out |
 | Reboot                | Works, also to the bootloader (=reboot bootloader=)                 |
 
 * Step 1: Build the Images (on your PC)
