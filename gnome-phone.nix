@@ -136,16 +136,14 @@ in
     settings = {
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
-        # The dock. The browser is Firefox: Chromium-based browsers (Brave,
-        # Chrome) handle touch poorly and don't bring up GNOME's on-screen
-        # keyboard yet. YouTube and Fluid are websites (webApp in
-        # configuration.nix).
+        # The dock: files, browser, phone and Signal. The browser is Firefox:
+        # Chromium-based browsers (Brave, Chrome) handle touch poorly and
+        # don't bring up GNOME's on-screen keyboard yet.
         favorite-apps = [
-          "com.mitchellh.ghostty.desktop"
+          "org.gnome.Nautilus.desktop"
           "firefox.desktop"
-          "youtube.desktop"
-          "org.luanti.luanti.desktop"
-          "fluid.desktop"
+          "org.gnome.Calls.desktop"
+          "signal.desktop"
         ];
       };
       "org/gnome/shell/extensions/user-theme".name = "Phoneputer";

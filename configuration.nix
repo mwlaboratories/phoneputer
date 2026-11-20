@@ -115,13 +115,13 @@ in
     codex       #   and `codex`
     luanti      # voxel game
     chatty      # SMS
+    signal-desktop # Signal (a linked device: Signal on another phone stays the main one)
     git
     vim
     wget
     curl
     lazygit
     asciiquarium
-    (webApp { name = "Discord"; url = "https://discord.com/app"; icon = "discord"; })
     (webApp { name = "YouTube"; url = "https://m.youtube.com"; icon = "youtube"; })
     (webApp { name = "Fluid"; url = "https://paveldogreat.github.io/WebGL-Fluid-Simulation/"; icon = "fluid"; })
   ];
