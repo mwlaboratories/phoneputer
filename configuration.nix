@@ -45,6 +45,17 @@ in
   services.openssh.settings.PermitRootLogin = "yes";
   services.openssh.settings.PasswordAuthentication = true;
 
+  # Rebuild on the phone itself: `nh os switch` in a terminal, from the
+  # checkout in ~/phoneputer (git clone https://github.com/mwlaboratories/phoneputer).
+  # The phone builds faster than a PC can through aarch64 emulation. Only
+  # the kernel is built on a PC (see flake.nix); when it changes, build
+  # there and copy it over first.
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  programs.nh = {
+    enable = true;
+    flake = "/home/nix/phoneputer";
+  };
+
   # WiFi and mobile data (set up WiFi in GNOME Settings → Wi-Fi)
   networking.networkmanager.enable = true;
   networking.modemmanager.enable = true;
