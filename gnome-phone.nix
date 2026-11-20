@@ -84,6 +84,23 @@ in
       Restart = "on-failure";
     };
   };
+  # The alert slider on the side: silent, vibrate or ring (./alert-slider.py).
+  systemd.user.services.alert-slider = {
+    description = "Alert slider: silent, vibrate or ring";
+    unitConfig.ConditionGroup = "users"; # not in the login screen
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ pkgs.glib ];
+    # Where gsettings finds the settings it changes (feedbackd's, GNOME's).
+    environment.XDG_DATA_DIRS = pkgs.lib.concatMapStringsSep ":"
+      (p: "${p}/share/gsettings-schemas/${p.name}")
+      [ pkgs.feedbackd pkgs.gsettings-desktop-schemas ];
+    serviceConfig = {
+      ExecStart = "${pkgs.python3.withPackages (ps: [ ps.evdev ])}/bin/python3 ${./alert-slider.py}";
+      Restart = "on-failure";
+    };
+  };
   # The phone never sleeps. GNOME still tries to when the power key is
   # pressed with the screen off (whatever power-button-action says), so
   # sleeping is refused outright; GNOME then also drops "Suspend" from its
@@ -102,11 +119,12 @@ in
     HandlePowerKey = "ignore";
     HandlePowerKeyLongPress = "ignore";
   };
-  # Let the logged-in user read the power key. The rule has to run before
+  # Let the logged-in user read the power key and the alert slider. The rule has to run before
   # udev's seat rules (73-*), which turn "uaccess" into access.
   services.udev.packages = [
     (pkgs.writeTextDir "lib/udev/rules.d/70-power-key.rules" ''
       SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="*pwrkey*", TAG+="uaccess"
+      SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="Alert slider", TAG+="uaccess"
     '')
   ];
 
@@ -193,7 +211,8 @@ in
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).
       "org/gnome/mutter".edge-tiling = true;
-      # feedbackd: vibrations only, no click sounds ("full" adds sounds).
+      # feedbackd: vibrations only, no click sounds. The alert slider sets
+      # this at login and whenever you move it (alert-slider.py).
       "org/sigxcpu/feedbackd".profile = "quiet";
       # The on-screen keyboard is always available, so the swipe up from the
       # bottom edge always opens it (otherwise only in GNOME's "touch mode",
