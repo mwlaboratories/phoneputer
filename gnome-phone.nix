@@ -54,6 +54,11 @@ in
       Restart = "on-failure";
     };
   };
+  # The system itself ignores the key (its default is to shut down).
+  services.logind.settings.Login = {
+    HandlePowerKey = "ignore";
+    HandlePowerKeyLongPress = "ignore";
+  };
   # Let the logged-in user read the power key. The rule has to run before
   # udev's seat rules (73-*), which turn "uaccess" into access.
   services.udev.packages = [
