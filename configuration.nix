@@ -55,6 +55,9 @@ in
       id = "Mobile data";
       type = "gsm";
       autoconnect = true;
+      # Keep retrying: after the modem restarts or comes back from a call
+      # it can refuse a few attempts before it's ready.
+      autoconnect-retries = 0;
     };
     gsm.auto-config = true;
     ipv4.method = "auto";
