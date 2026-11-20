@@ -58,7 +58,7 @@ in
   # a second logs out (./power-key.py). Shut down from the login screen or
   # the system menu.
   systemd.user.services.power-key = {
-    description = "Power key: screen off/on, hold to log out";
+    description = "Power key: screen off/on, hold to log out; screen on for calls";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
