@@ -275,6 +275,23 @@ Upstream Mobile NixOS still ships the OnePlus 6 kernel at Linux 6.4, and its ker
 - *Sensors*: =hexagonrpcd= serves the sensor DSP its configuration, and =iio-sensor-proxy= reads the sensors from it.
 - *USB-C gadget*: Mobile NixOS normally only sets up USB during early boot. The fork keeps a network interface and a serial console after boot (=mobile.usb.stage-2=).
 
+* Back to Android
+
+To put the stock OnePlus firmware (OxygenOS, the Android the phone ships with) back on the phone, as it came out of the box. This erases everything on the phone again.
+
+⚠️ Not yet tested with this tutorial; the steps follow [[https://www.thecustomdroid.com/oneplus-6-6t-unbrick-guide/][The Custom Droid's unbrick guide]] (2022) and the [[https://wiki.realmofespionage.xyz/android:oneplus_6_enchilada][Realm of Espionage wiki]] (2024). Only use packages for the OnePlus 6 (/enchilada/), never the 6T's.
+
+The usual way is the MSM Download Tool, OnePlus's own service tool for its repair centres. It isn't published by OnePlus, but shared with the firmware packages on XDA (thread 3914109, "OP6 collection unbrick tools"); check the package's checksum before using it. It runs on Windows only and rewrites every partition through the phone's emergency download mode (EDL), so it works whatever is on the phone now:
+
+1. On a Windows PC, install the Qualcomm HS-USB QDLoader 9008 driver.
+2. Unpack the OnePlus 6 package (the newest is OxygenOS 10.3.8, =enchilada_22_J.50_210121=) and start =MsmDownloadTool V4.0.exe=.
+3. Power the phone off. Hold Volume Up and Volume Down together and plug in the cable (a USB 2.0 port; USB 3 ports cause errors). The screen stays black: that's EDL. Windows' Device Manager shows "Qualcomm HS-USB QDLoader 9008".
+4. Click Start. When it's done the phone reboots into OxygenOS. If it stays black, hold Power and Volume Up for 20 to 30 seconds.
+
+According to the guide, the tool also locks the bootloader again. Then update to the latest OxygenOS in Settings → System → System updates, as in [[*Update OxygenOS and remove Google accounts][Step 2]], and the phone is as it came out of the box.
+
+On Linux, the same firmware package can be written with [[https://github.com/bkerler/edl][bkerler/edl]] after decrypting it with [[https://github.com/bkerler/oppo_decrypt][oppo_decrypt]]; the Realm of Espionage wiki has the commands. That route doesn't lock the bootloader again.
+
 * Resources
 
 - [[https://github.com/mwlaboratories/mobile-nixos][Mobile NixOS fork (mwlaboratories)]]
