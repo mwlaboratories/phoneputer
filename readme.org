@@ -240,6 +240,19 @@ mmcli -m 0
 
 Without a SIM, =mmcli -m 0= reports state =failed= with reason =sim-missing=. That is expected.
 
+* Dictation
+
+The on-screen keyboard has a microphone button in the bar above the keys. Tap it and speak: the words appear in the bar as you say them, the uncertain ones dimmed. Tap it again to stop (and again to add more). The send button types the text into the app where your cursor is; the cross throws it away. Nothing is typed until you press send.
+
+The speech recognition is [[https://soniox.com][Soniox]], a paid service on the internet, so dictation needs a connection and your own API key from [[https://console.soniox.com][console.soniox.com]]. Put the key in a file on the phone, readable only by you (paste it, press Enter, then Ctrl+D):
+
+#+begin_src sh
+mkdir -p ~/.config/soniox
+install -m 600 /dev/stdin ~/.config/soniox/api-key
+#+end_src
+
+It's read each time you tap the microphone, so no rebuild is needed; without it the bar tells you it's missing. The key stays out of this repository and the Nix store. Set the languages you speak in =modules/nixos/gnome/dictation.nix= (=SONIOX_LANGUAGE_HINTS=). After the rebuild that brings dictation in, log out and back in once: GNOME only loads new extensions at login.
+
 * How It Works
 
 ** This repository
@@ -254,6 +267,7 @@ modules/nixos/
   gnome/                      GNOME made for a phone screen
     default.nix               scale, clock, full-screen apps, on-screen keyboard, defaults
     buttons.nix               power key and alert slider (power-key.py, alert-slider.py)
+    dictation.nix             voice dictation for the on-screen keyboard (dictation.js, Soniox)
     extensions/               small GNOME Shell extensions of our own
   phone.nix                   mobile data, calls and SMS
   stylix.nix                  colours and fonts from the wallpaper, also in GNOME Shell and the login screen

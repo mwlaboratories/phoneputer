@@ -1,0 +1,7 @@
+{
+  "uuid": "osk-voice@phoneputer",
+  "name": "On-screen keyboard dictation",
+  "description": "A microphone button above the on-screen keyboard: speak, read the text, then send it to the app.",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}
