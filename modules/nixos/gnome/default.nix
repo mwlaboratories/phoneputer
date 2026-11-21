@@ -2,7 +2,7 @@
 #
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This adds what a phone needs on top: the clock moved out from behind the
-# notch, apps full screen, the on-screen keyboard by hand and with haptic
+# notch, the on-screen keyboard by hand and with haptic
 # feedback, and the defaults below. The power key and alert slider are in
 # ./buttons.nix.
 
@@ -26,7 +26,7 @@ let
   devAccess = true;
 
   extensions = (with pkgs.gnomeExtensions; [
-    just-perfection  # moves the clock, hides icons, maximizes windows
+    just-perfection  # moves the clock, hides icons
     blur-my-shell    # blur behind see-through windows (Ghostty: see home.nix) and the top bar
   ]) ++ [
     (extension "osk-haptics") # a short vibration on every key of the on-screen keyboard
@@ -112,10 +112,6 @@ in
         # keyboard counts as an accessibility feature; it only takes room
         # next to the notch. Settings → Accessibility still has it all.
         accessibility-menu = false;
-        # Every app opens full screen, like on a phone. Otherwise most apps
-        # (Files, Chatty, Calls, Signal, ...) open as a small window on half
-        # the screen. You can still unmaximize a window.
-        window-maximized-on-create = true;
       };
       # The battery level in numbers in the top bar, like on a phone.
       "org/gnome/desktop/interface".show-battery-percentage = true;
