@@ -30,9 +30,11 @@ let
       feedbacks = [{
         event-name = "button-pressed";
         type = "VibraPattern";
-        # Strength from 0 to 1, time in ms. A starting point, meant to be
-        # tuned: a sweep over strength and frequency is planned. Longer
-        # feels mushy, weaker gets lost.
+        # Strength from 0 to 1, time in ms. On the OnePlus 6 strength only
+        # sets the motor's voltage, and from about 0.52 up it is already
+        # the maximum (so 0.7 is full strength); waveform and frequency
+        # can't be chosen. Feel candidates, or your own values, with
+        # tests/haptics-sweep.sh before changing these.
         magnitudes = [ 0.7 ];
         durations = [ 12 ];
       }];
