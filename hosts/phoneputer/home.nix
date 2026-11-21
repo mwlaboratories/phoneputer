@@ -47,8 +47,9 @@ in
   # Ghostty, the terminal: always dark whatever the wallpaper, with bright
   # accent colours, see-through (stylix.opacity.terminal in
   # ../../modules/nixos/stylix.nix) and the wallpaper blurred behind it.
-  # In ghostty.nix.
-  imports = [ ./ghostty.nix ];
+  # In ghostty.nix. A firmer buzz for the on-screen keyboard's keys is in
+  # feedbackd.nix.
+  imports = [ ./ghostty.nix ./feedbackd.nix ];
 
   # GNOME Shell already has the Stylix colours built in (stylix.nix). The
   # extra copy Stylix would load per user, through the User Themes

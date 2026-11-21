@@ -1,7 +1,7 @@
 {
   "uuid": "osk-haptics@phoneputer",
   "name": "On-screen keyboard haptics",
-  "description": "A short vibration on every touch of GNOME's on-screen keyboard, through feedbackd.",
+  "description": "A short vibration when a key of GNOME's on-screen keyboard is touched, through feedbackd.",
   "shell-version": ["51"],
   "url": "https://github.com/mwlaboratories/phoneputer"
 }
