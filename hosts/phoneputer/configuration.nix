@@ -1,8 +1,8 @@
 # Your phone: a user, its wallpaper and the system around it. Your own
 # apps and settings are in ./home.nix.
 #
-# All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors,
-# SSH over the USB-C cable) comes from the Mobile NixOS fork; the rest of
+# All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth,
+# sensors) comes from the Mobile NixOS fork; the rest of
 # what makes it a phone is in ../../modules/nixos. Change anything here.
 
 { pkgs, ... }:
@@ -49,11 +49,8 @@
   # Root, for SSH. Same password; change it with `passwd` as root.
   users.users.root.initialPassword = "nixtheplanet";
 
-  # SSH over WiFi and over the USB-C cable (ssh nix@172.16.42.1).
-  # The cable: plugged into a PC, the phone shows up there as a small network
-  # card (and charges as usual). Updating the kernel needs it (the PC copies
-  # it over the cable); without kernel builds you can turn it off.
-  mobile.usb.stage-2.enable = true;
+  # SSH over WiFi: `ssh nix@<the phone's address>` (GNOME Settings → Wi-Fi,
+  # the gear next to your network).
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
   services.openssh.settings.PasswordAuthentication = true;

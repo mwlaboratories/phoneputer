@@ -10,7 +10,7 @@ This tutorial puts NixOS with GNOME on a OnePlus 6 (codename /enchilada/). You b
 
 Video tutorial: https://youtu.be/yxfDNqZ9WTM (it shows an older two-stage install; the phone preparation is the same)
 
-All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors, SSH over the USB-C cable) lives in a [[https://github.com/mwlaboratories/mobile-nixos][fork of Mobile NixOS]]. This repository holds the rest: GNOME made for a phone, the Stylix colours, a user and your apps (Home Manager).
+All OnePlus 6 hardware support (kernel, firmware, modem, Bluetooth, sensors) lives in a [[https://github.com/mwlaboratories/mobile-nixos][fork of Mobile NixOS]]. This repository holds the rest: GNOME made for a phone, the Stylix colours, a user and your apps (Home Manager).
 
 ** What you need
 
@@ -32,7 +32,6 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Display + GPU         | Works; Firefox renders WebGL on the GPU                             |
 | WiFi                  | Works                                                               |
 | Bluetooth             | Works                                                               |
-| SSH / serial over USB | Works (see [[*SSH over the USB-C cable][SSH over the USB-C cable]]) |
 | USB-C port            | Works like a laptop's: picks host/device and power role by itself   |
 | USB devices           | Keyboard dongle works, powered by the phone; hub not yet tested     |
 | Cameras               | All three work (Snapshot): both rear cameras autofocus, switching between cameras is reliable, front uses the full field of view; colours and edge shading still being tuned; video at 720p via the hardware encoder |
@@ -150,24 +149,23 @@ The first boot takes a little longer while the phone grows its file system to fi
 
 Connect to WiFi in GNOME Settings → Wi-Fi. That's it: you're running NixOS.
 
-** SSH over the USB-C cable
+** SSH from your PC
 
-The USB-C port works like a laptop's: plug in a keyboard or other USB device and the phone acts as host and powers it; plug it into a charger or PC and it charges. The port is USB 2.0 and has no video output; that's the OnePlus 6 hardware.
-
-One extra a laptop doesn't have: plugged into your PC, the phone also shows up as a network device. No WiFi needed:
+Once the phone is on WiFi, you can reach it from your PC over SSH. Its address is in GNOME Settings → Wi-Fi, behind the gear next to your network. Keep it in a variable for the commands below:
 
 #+begin_src sh
-ssh nix@172.16.42.1
+PHONE=192.168.1.23   # the phone's address
+ssh nix@$PHONE
 #+end_src
-
-There's also a serial console, on the PC as =/dev/ttyACM0= (the number can differ): =screen /dev/ttyACM0 115200=.
 
 Copy your SSH key over once, so SSH and copying a kernel over (see below) don't ask for a password every time:
 
 #+begin_src sh
-ssh-copy-id nix@172.16.42.1
-ssh-copy-id root@172.16.42.1
+ssh-copy-id nix@$PHONE
+ssh-copy-id root@$PHONE
 #+end_src
+
+The USB-C port works like a laptop's: plug in a keyboard or other USB device and the phone acts as host and powers it; plug it into a charger or PC and it charges. The port is USB 2.0 and has no video output; that's the OnePlus 6 hardware.
 
 * Changing the Phone
 
@@ -206,8 +204,8 @@ nix flake update
 The phone doesn't compile its own kernel (that takes hours); your PC cross-compiles it in minutes. Build it there and copy it to the phone, then rebuild on the phone as usual:
 
 #+begin_src sh
-nix copy --to ssh://root@172.16.42.1 .#kernel
-ssh -t nix@172.16.42.1 'cd ~/phoneputer && git pull && nh os switch'
+nix copy --to ssh://root@$PHONE .#kernel
+ssh -t nix@$PHONE 'cd ~/phoneputer && git pull && nh os switch'
 #+end_src
 
 The kernel also lives in the phone's =boot= partition, which the bootloader starts directly, so flash a new boot image too. Build it on your PC:
@@ -219,14 +217,14 @@ nix build .#boot-image -o boot.img
 Send the phone to the bootloader and try the new kernel once, without flashing it. The next reboot goes back to the old kernel:
 
 #+begin_src sh
-ssh root@172.16.42.1 reboot bootloader
+ssh root@$PHONE reboot bootloader
 fastboot boot boot.img
 #+end_src
 
 If everything works, flash it for good:
 
 #+begin_src sh
-ssh root@172.16.42.1 reboot bootloader
+ssh root@$PHONE reboot bootloader
 fastboot flash boot boot.img
 fastboot reboot
 #+end_src
@@ -273,7 +271,7 @@ Upstream Mobile NixOS still ships the OnePlus 6 kernel at Linux 6.4, and its ker
 - *Firmware*: the paths the kernel expects (=qcom/sdm845/OnePlus/enchilada=, =qca/OnePlus/enchilada=) point at the OnePlus firmware package.
 - *Bluetooth and WiFi addresses*: no factory addresses reach the mainline kernel, so the phone derives stable ones (Bluetooth from the serial number).
 - *Sensors*: =hexagonrpcd= serves the sensor DSP its configuration, and =iio-sensor-proxy= reads the sensors from it.
-- *USB-C gadget*: Mobile NixOS normally only sets up USB during early boot. The fork keeps a network interface and a serial console after boot (=mobile.usb.stage-2=).
+- *USB-C gadget*: Mobile NixOS normally only sets up USB during early boot. The fork can keep a network interface (SSH at 172.16.42.1) and a serial console after boot, for development without WiFi: =mobile.usb.stage-2.enable = true;=, off by default.
 
 * Back to Android
 
