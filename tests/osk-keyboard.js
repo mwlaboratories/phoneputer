@@ -50,16 +50,23 @@
         finger.notify_touch_up(now(), 0);
     };
 
-    // The visible key with this icon (each layer has its own copy), as
-    // the point in its middle; the leftmost one if there are two.
+    // The visible key with this icon or label (a string, or a RegExp for
+    // either; each layer has its own copy of a key), as the point in its
+    // middle; the leftmost one if there are two. Throws, naming the keys
+    // that are visible, if there is none.
     const keyboard = () => Main.keyboard.keyboardActor;
     const controller = () => keyboard()._keyboardController;
+    const level = () => Object.keys(keyboard()._layers)
+        .find(k => keyboard()._layers[k] === keyboard()._currentPage);
     const findKey = name => {
-        const found = [];
+        const found = [], seen = [];
+        const matches = s => s != null && (name instanceof RegExp ? name.test(s) : s === name);
         const walk = a => {
             for (const c of a.get_children()) {
+                if (c.keyButton?.mapped && c._hasAction)
+                    seen.push(c._icon?.icon_name ?? c.keyButton.label);
                 if (c.keyButton?.mapped &&
-                    (c._icon?.icon_name === name || c.keyButton.label === name)) {
+                    (matches(c._icon?.icon_name) || matches(c.keyButton.label))) {
                     const [x, y] = c.keyButton.get_transformed_position();
                     const [w, h] = c.keyButton.get_transformed_size();
                     found.push([x + w / 2, y + h / 2]);
@@ -68,6 +75,8 @@
             }
         };
         walk(keyboard());
+        if (!found.length)
+            throw new Error(`no key ${name} on level ${level()}; visible: ${seen.join(' ')}`);
         return found.sort((a, b) => a[0] - b[0])[0];
     };
 
@@ -83,12 +92,19 @@
         if (CONTROL && ext)
             await Main.extensionManager.disableExtension(UUID);
 
-        // Our own text field at the top of the screen.
-        entry = new St.Entry({
-            style: 'background-color: white; color: black; font-size: 20px; padding: 8px;',
-            x: 20, y: 80, width: global.stage.width - 40,
-        });
-        Main.layoutManager.addTopChrome(entry);
+        // Our own text field at the top of the screen. Made once per GNOME
+        // Shell and only hidden afterwards: destroying it while GNOME still
+        // has a style update queued for it crashed GNOME Shell (SEGV in
+        // St.Entry's update_hint_relation).
+        if (!global.__oskTestEntry) {
+            global.__oskTestEntry = new St.Entry({
+                style: 'background-color: white; color: black; font-size: 20px; padding: 8px;',
+                x: 20, y: 80, width: global.stage.width - 40,
+            });
+            Main.layoutManager.addTopChrome(global.__oskTestEntry);
+        }
+        entry = global.__oskTestEntry;
+        entry.show();
         await sleep(100);
         entry.clutter_text.grab_key_focus();
         await sleep(300);
@@ -149,14 +165,22 @@
 
         // 4. After a long press on shift (caps lock), a tap on shift counts.
         const kb = keyboard();
-        await press(...findKey('osk-shift-symbolic'), 1000);
+        // On the shift layer the same key may carry a caps-lock icon.
+        const SHIFT = /^osk-(shift|caps-lock)/;
+        if (kb._currentPage !== kb._layers.default)
+            kb._setActiveLevel('default');
+        await sleep(200);
+        await press(...findKey(SHIFT), 1000);
         await sleep(400);
         const capsOn = kb._currentPage === kb._layers.shift && kb._latched;
-        await press(...findKey('osk-shift-symbolic'), 100);
+        const flagBeforeTap = kb._longPressed;
+        const tapAt = findKey(SHIFT);
+        await press(...tapAt, 100);
         await sleep(400);
         check('shift: long press turns caps lock on', capsOn);
         check('shift: the next tap turns it off', kb._currentPage === kb._layers.default,
-            kb._currentPage === kb._layers.default ? '' : 'still upper case');
+            kb._currentPage === kb._layers.default ? '' : 
+                `still upper case; _longPressed before the tap ${flagBeforeTap}, tapped at ${tapAt.map(Math.round)}, level ${level()}`);
         if (kb._currentPage !== kb._layers.default) {
             kb._setActiveLevel('default');
             kb._setLatched(false);
@@ -180,7 +204,9 @@
             kb._setActiveLevel('default');
             kb._setLatched(false);
         }
-        entry?.destroy();
+        entry?.set_text('');
+        entry?.hide();
+        global.stage.set_key_focus(null);
         Main.keyboard.close(true);
         if (CONTROL && Main.extensionManager.lookup(UUID))
             await Main.extensionManager.enableExtension(UUID);

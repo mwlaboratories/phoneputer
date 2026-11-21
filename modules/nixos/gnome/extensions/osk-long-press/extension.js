@@ -3,22 +3,32 @@
 //
 // GNOME Shell 51's keyboard (ui/keyboard.js) gives a long press a meaning
 // on two keys: holding backspace deletes until you let go, holding shift
-// turns caps lock on. Both are switched back off in the key's 'released'
-// handler, and GNOME sends 'released' only after a click. A long press
-// swallows that click, so after a long press:
+// turns caps lock on. Both are wound down in the key's 'released' handler,
+// and GNOME sends 'released' only after a click. A long press swallows
+// that click, so after a long press:
 //
 // - backspace's delete mode stays on: everything that later lands in the
 //   text field (typed, pasted, dictated) is deleted again at once, word
 //   by word, until you tap backspace once more;
-// - the flag that kept the shift key's own release from undoing caps
+// - the flag that keeps the shift key's own release from undoing caps
 //   lock (Keyboard._longPressed) stays set, so the next tap on shift is
 //   ignored.
 //
-// This ends exactly those two when a key's long-press gesture ends (finger
-// up) or is cancelled (keyboard closed), and nothing else: no key's tap
-// action runs. It does so on the next idle tick, so if GNOME ever does send
-// 'released' after a long press (its own clean-up), that goes first and
-// this finds nothing left to do.
+// This ends exactly those two, and nothing else: no key's tap action runs.
+//
+// - Delete mode goes off when a key's long-press gesture ends (finger up)
+//   or is cancelled (keyboard closed). It has to stop right at the lift,
+//   or text arriving afterwards would still be deleted.
+// - The shift flag is cleared when the next finger lands on the keyboard:
+//   the flag only means "ignore the release of the key that was held",
+//   and a new press is never that release. Not tied to the gesture,
+//   because holding shift switches the keyboard to its upper-case layer,
+//   which hides the held key and can cancel its gesture before this code
+//   even hears that the long press began (seen on the first caps lock
+//   after GNOME Shell starts).
+//
+// Both run after GNOME's own handling: delete mode on the next idle tick,
+// so if GNOME ever does send 'released' after a long press it goes first.
 
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
@@ -47,16 +57,38 @@ export default class OskLongPressExtension extends Extension {
         const keyboard = Main.keyboard.keyboardActor;
         if (keyboard)
             this._watchKeys(keyboard, keyboard);
+
+        // 'captured-event' runs before the keys see the event.
+        const box = Main.layoutManager.keyboardBox;
+        this._pressId = box.connect('captured-event', (_actor, event) => {
+            if (this._isPress(event) && Main.keyboard.keyboardActor)
+                Main.keyboard.keyboardActor._longPressed = false;
+            return Clutter.EVENT_PROPAGATE;
+        });
     }
 
     disable() {
         proto._addRowKeys = this._origAddRowKeys;
+        Main.layoutManager.keyboardBox.disconnect(this._pressId);
         for (const [gesture, ids] of this._gestures)
             ids.forEach(id => gesture.disconnect(id));
         this._gestures = null;
         if (this._idleId)
             GLib.source_remove(this._idleId);
         this._idleId = 0;
+    }
+
+    // A finger or the mouse going down (not the mouse press GNOME fakes
+    // from a touch).
+    _isPress(event) {
+        switch (event.type()) {
+        case Clutter.EventType.TOUCH_BEGIN:
+            return true;
+        case Clutter.EventType.BUTTON_PRESS:
+            return !(event.get_flags() & Clutter.EventFlags.FLAG_POINTER_EMULATED);
+        default:
+            return false;
+        }
     }
 
     // A key (Key in ui/keyboard.js, not exported) is the actor with a
@@ -74,29 +106,20 @@ export default class OskLongPressExtension extends Extension {
             .find(a => a instanceof Clutter.LongPressGesture);
         if (!gesture || this._gestures.has(gesture))
             return;
-
-        let held = false;
-        const letGo = () => {
-            if (held) {
-                held = false;
-                this._endLongPress(keyboard);
-            }
-        };
+        const ended = () => this._endDelete(keyboard);
         this._gestures.set(gesture, [
-            gesture.connect('recognize', () => (held = true)),
-            gesture.connect('end', letGo),
-            gesture.connect('cancel', letGo),
+            gesture.connect('end', ended),
+            gesture.connect('cancel', ended),
         ]);
         key.connect('destroy', () => this._gestures?.delete(gesture));
     }
 
-    _endLongPress(keyboard) {
+    // Delete mode is only ever left on by a held backspace.
+    _endDelete(keyboard) {
         if (this._idleId)
             return;
         this._idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
             this._idleId = 0;
-            keyboard._longPressed = false;
-            // Delete mode is only ever left on by a held backspace.
             const controller = keyboard._keyboardController;
             if (controller?._deleteEnabled)
                 controller.toggleDelete(false);
