@@ -22,7 +22,9 @@ let
   # Developer access (dev-access): lets tools over SSH take screenshots and
   # run GNOME Shell JavaScript, so a coding agent can see and drive the
   # phone like adb on Android. Any program in your session can then take
-  # screenshots too; set to false to turn it off.
+  # screenshots too; set to false to turn it off. While it is on, GNOME
+  # shows a padlock with an orange badge in the top bar (its "unsafe
+  # mode" warning); it goes away with this.
   devAccess = true;
 
   extensions = (with pkgs.gnomeExtensions; [
