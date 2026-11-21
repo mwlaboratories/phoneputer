@@ -40,7 +40,10 @@ in
   # The scheme's accent colours are all muted blue-greys (the wallpaper is
   # nearly monochrome), so ANSI 1-6 barely stood apart on the dark background
   # (asciiquarium's fish, ls colours, diffs). They get vivid fixed colours;
-  # 0, 7, 8 and 15 stay stylix's.
+  # 7, 8 and 15 come from the scheme (via `pick`). ANSI 0 ("black") is a
+  # fixed dark grey from the same vivid set, not the background: apps draw
+  # real things in black (asciiquarium's castle), which vanished when 0 was
+  # exactly the background colour.
   programs.ghostty = {
     enable = true;
     # (Phone: the title bar stays, unlike on the desktop. Its menu button is
@@ -63,7 +66,7 @@ in
       cursor-color = lib.mkForce fg; # cursor stays visible on dark bg
       selection-foreground = lib.mkForce palest;
       palette = lib.mkForce [
-        "0=#${bg}"
+        "0=#484f58" # black, visibly lighter than bg
         "1=#ff7b72" # red
         "2=#7ee787" # green
         "3=#f2cc60" # yellow
