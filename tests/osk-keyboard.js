@@ -54,11 +54,12 @@
     // the point in its middle; the leftmost one if there are two.
     const keyboard = () => Main.keyboard.keyboardActor;
     const controller = () => keyboard()._keyboardController;
-    const findKey = iconName => {
+    const findKey = name => {
         const found = [];
         const walk = a => {
             for (const c of a.get_children()) {
-                if (c.keyButton?.mapped && c._icon?.icon_name === iconName) {
+                if (c.keyButton?.mapped &&
+                    (c._icon?.icon_name === name || c.keyButton.label === name)) {
                     const [x, y] = c.keyButton.get_transformed_position();
                     const [w, h] = c.keyButton.get_transformed_size();
                     found.push([x + w / 2, y + h / 2]);
@@ -156,6 +157,21 @@
         check('shift: long press turns caps lock on', capsOn);
         check('shift: the next tap turns it off', kb._currentPage === kb._layers.default,
             kb._currentPage === kb._layers.default ? '' : 'still upper case');
+        if (kb._currentPage !== kb._layers.default) {
+            kb._setActiveLevel('default');
+            kb._setLatched(false);
+        }
+
+        // 5. A long press does nothing more than GNOME gives it: it runs no
+        // key's tap action. These pass on stock GNOME too.
+        await press(...findKey('?123'), 1000);
+        await sleep(400);
+        check('long press on ?123: stays on the letters', kb._currentPage === kb._layers.default);
+        if (kb._currentPage !== kb._layers.default)
+            kb._setActiveLevel('default');
+        await press(...findKey('osk-hide-symbolic'), 1000);
+        await sleep(600);
+        check('long press on hide: the keyboard stays open', Main.keyboard.visible);
     } catch (e) {
         check('test ran without errors', false, `${e} at ${e.stack?.split(String.fromCharCode(10))[0]}`);
     } finally {

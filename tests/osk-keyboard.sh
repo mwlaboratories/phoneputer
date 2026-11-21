@@ -9,7 +9,8 @@
 # removes it all again; leave the phone alone for the ~10 s it takes.
 #
 # --control turns the osk-long-press extension off for the run: then the
-# hold and shift checks should FAIL, which shows the test can see the bug.
+# hold and shift checks should FAIL, which shows the test can see the bug;
+# the long-press-on-?123/hide checks pass either way (stock behaviour).
 #
 # Prints PASS or FAIL per check; exits non-zero if anything failed.
 
