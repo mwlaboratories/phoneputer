@@ -50,6 +50,10 @@
   users.users.root.initialPassword = "nixtheplanet";
 
   # SSH over WiFi and over the USB-C cable (ssh nix@172.16.42.1).
+  # The cable: plugged into a PC, the phone shows up there as a small network
+  # card (and charges as usual). Updating the kernel needs it (the PC copies
+  # it over the cable); without kernel builds you can turn it off.
+  mobile.usb.stage-2.enable = true;
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
   services.openssh.settings.PasswordAuthentication = true;

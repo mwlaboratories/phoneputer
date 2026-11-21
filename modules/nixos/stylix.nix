@@ -83,6 +83,9 @@ in
     # instead, without rebuilding anything.
     targets.gtksourceview.enable = false;
     targets.nixos-icons.enable = false;
+    # Qt apps keep GNOME's own Qt theme: Stylix only themes Qt through qtct,
+    # and warns about GNOME's.
+    targets.qt.enable = false;
 
     # GNOME's own fonts: clear on a small, sharp screen.
     fonts = {

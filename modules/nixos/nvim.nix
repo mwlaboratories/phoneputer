@@ -1,11 +1,14 @@
 # Neovim (`nvim`), set up with Nixvim: https://nix-community.github.io/nixvim/
 # Stylix gives it the phone's colours.
 
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.nixvim = {
     enable = true;
+    # Nixvim on the system's Nixpkgs (flake.nix makes its input follow ours),
+    # said explicitly so Nixvim doesn't warn about its own pin.
+    nixpkgs.source = pkgs.path;
     defaultEditor = true;
 
     plugins = {
