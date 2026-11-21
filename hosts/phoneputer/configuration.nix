@@ -18,6 +18,11 @@
 
   networking.hostName = "phoneputer";
 
+  # Your time zone, for the clock (otherwise UTC: an hour behind in
+  # winter). The same as the PC (nixos-config). 12- or 24-hour display is
+  # in ../../modules/nixos/gnome (clock-format).
+  time.timeZone = "Europe/Amsterdam";
+
   # The wallpaper; the colours of the whole phone are taken from it. Put
   # your own image here (`git add` it: a flake only sees files git knows
   # about) and rebuild. This one: a hammerhead shark over the sea floor.

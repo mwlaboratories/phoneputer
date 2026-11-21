@@ -122,7 +122,12 @@ in
         accessibility-menu = false;
       };
       # The battery level in numbers in the top bar, like on a phone.
-      "org/gnome/desktop/interface".show-battery-percentage = true;
+      "org/gnome/desktop/interface" = {
+        show-battery-percentage = true;
+        # The clock in 12-hour time (3:41 PM), not 24-hour. GNOME Settings
+        # → System → Date & Time changes it per user.
+        clock-format = "12h";
+      };
       # Dragging a window to the top edge maximizes it (off by default in
       # GNOME 51).
       "org/gnome/mutter".edge-tiling = true;
