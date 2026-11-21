@@ -40,12 +40,15 @@ in
   # The scheme's accent colours are all muted blue-greys (the wallpaper is
   # nearly monochrome), so ANSI 1-6 barely stood apart on the dark background
   # (asciiquarium's fish, ls colours, diffs). They get vivid fixed colours;
-  # 7, 8 and 15 come from the scheme (via `pick`). ANSI 0 ("black") is a
-  # fixed dark grey from the same vivid set, not the background: apps draw
-  # real things in black (asciiquarium's castle), which vanished when 0 was
-  # exactly the background colour.
+  # 0, 7, 8 and 15 come from the scheme (0 is the background itself).
   programs.ghostty = {
     enable = true;
+    # Bold text in ANSI 0-7 uses the bright colour (8-15), as in xterm.
+    # asciiquarium draws its castle in bold black on a black background
+    # (Term::Animation paints every cell's background ANSI 0); bold-is-bright
+    # terminals show that as grey, Ghostty's default left it invisible.
+    # Making 0 itself lighter is no fix: it greys every cell's background too.
+    settings.bold-color = "bright";
     # (Phone: the title bar stays, unlike on the desktop. Its menu button is
     # the way to Ghostty's menus on a touch screen.)
     # The window is rarely an exact number of rows tall; by default all the
@@ -66,7 +69,7 @@ in
       cursor-color = lib.mkForce fg; # cursor stays visible on dark bg
       selection-foreground = lib.mkForce palest;
       palette = lib.mkForce [
-        "0=#484f58" # black, visibly lighter than bg
+        "0=#${bg}"
         "1=#ff7b72" # red
         "2=#7ee787" # green
         "3=#f2cc60" # yellow
