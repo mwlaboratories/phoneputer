@@ -93,6 +93,11 @@ in
     settings = {
       "org/gnome/shell" = {
         enabled-extensions = map (e: e.extensionUuid) extensions;
+        # After a crash GNOME Shell turns all extensions off, to be safe.
+        # On the phone that takes away the keyboard swipe, the clock
+        # position and more, with no Extensions app to turn them back on.
+        # So they stay on (locked below); a bad extension is removed here.
+        disable-user-extensions = false;
         # The dock: files, browser, phone and Signal. The browser is Firefox:
         # Chromium-based browsers (Brave, Chrome) handle touch poorly. The
         # on-screen keyboard comes up with a swipe up from the bottom edge.
@@ -148,6 +153,9 @@ in
     # The extensions come from this file, not from the Extensions app: the
     # list is locked, so every user gets exactly these (also users who had
     # their own list). Add or remove extensions above, in `extensions`.
-    locks = [ "/org/gnome/shell/enabled-extensions" ];
+    locks = [
+      "/org/gnome/shell/enabled-extensions"
+      "/org/gnome/shell/disable-user-extensions"
+    ];
   }];
 }

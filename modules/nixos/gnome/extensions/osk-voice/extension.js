@@ -98,10 +98,19 @@ export default class OskVoiceExtension extends Extension {
             style_class: 'word-suggestions',
             x_expand: true,
         });
+        // Big enough for a thumb: a 28 px icon centred in a fixed 56 px wide
+        // button that fills the bar's height, so the three line up.
         const button = (iconName, onClick) => {
             const b = new St.Button({
-                child: new St.Icon({icon_name: iconName, icon_size: 20}),
-                y_align: Clutter.ActorAlign.CENTER,
+                child: new St.Icon({
+                    icon_name: iconName,
+                    icon_size: 28,
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                }),
+                style: 'width: 56px; padding: 0;',
+                y_expand: true,
+                y_align: Clutter.ActorAlign.FILL,
             });
             b.connect('clicked', onClick);
             return b;
