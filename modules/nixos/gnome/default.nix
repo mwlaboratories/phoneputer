@@ -31,6 +31,7 @@ let
   ]) ++ [
     (extension "osk-haptics") # a short vibration on every key of the on-screen keyboard
     (extension "osk-manual")  # the on-screen keyboard only opens with a swipe up from the bottom edge
+    (extension "osk-long-press") # lifting your finger after holding a key counts (backspace stopped deleting)
     (extension "osk-voice")   # dictation: a microphone button above the keys (./dictation.nix)
   ] ++ pkgs.lib.optional devAccess (extension "dev-access");
 in

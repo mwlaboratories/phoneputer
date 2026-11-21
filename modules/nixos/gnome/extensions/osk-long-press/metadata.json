@@ -1,0 +1,7 @@
+{
+  "uuid": "osk-long-press@phoneputer",
+  "name": "On-screen keyboard: letting go after a long press",
+  "description": "Lifting your finger after holding a key counts as letting go, so holding backspace no longer leaves it deleting.",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}
