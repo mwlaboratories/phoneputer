@@ -1,0 +1,7 @@
+{
+  "uuid": "osk-key-popup@phoneputer",
+  "name": "On-screen keyboard: the pressed letter, enlarged above your finger",
+  "description": "While your finger is on a letter, digit or symbol key, a bigger copy of it shows just above the key, like on Android. A tap and a long press do what they did before.",
+  "shell-version": ["51"],
+  "url": "https://github.com/mwlaboratories/phoneputer"
+}

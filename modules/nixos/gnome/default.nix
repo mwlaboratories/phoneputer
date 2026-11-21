@@ -2,9 +2,9 @@
 #
 # GNOME runs on the phone mostly as it comes, at 150% scale (set below).
 # This adds what a phone needs on top: the clock moved out from behind the
-# notch, the on-screen keyboard by hand and with haptic
-# feedback, and the defaults below. The power key and alert slider are in
-# ./buttons.nix.
+# notch, the on-screen keyboard by hand, with haptic feedback and the
+# pressed letter shown above your finger, and the defaults below. The
+# power key and alert slider are in ./buttons.nix.
 
 { pkgs, ... }:
 
@@ -32,6 +32,7 @@ let
     (extension "osk-haptics") # a short vibration on every key of the on-screen keyboard
     (extension "osk-manual")  # the on-screen keyboard only opens with a swipe up from the bottom edge
     (extension "osk-long-press") # a held backspace stops deleting when you let go (and shift after caps lock)
+    (extension "osk-key-popup") # the pressed letter, enlarged above your finger
     (extension "osk-voice")   # dictation: a microphone button above the keys (./dictation.nix)
   ] ++ pkgs.lib.optional devAccess (extension "dev-access");
 in
