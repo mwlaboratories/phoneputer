@@ -44,18 +44,11 @@ in
     commandLineArgs = [ "--ozone-platform=wayland" ];
   };
 
-  # Ghostty, the terminal, in the Stylix colours and see-through
-  # (stylix.opacity.terminal in ../../modules/nixos/stylix.nix), with the
-  # wallpaper blurred behind it (the Blur my Shell extension). Blur my
-  # Shell's own opacity and "make the focused window solid" stay off: the
-  # terminal is always the focused window on a phone.
-  programs.ghostty.enable = true;
-  dconf.settings."org/gnome/shell/extensions/blur-my-shell/applications" = {
-    blur = true;
-    whitelist = [ "com.mitchellh.ghostty" ];
-    opacity = lib.hm.gvariant.mkInt32 255;
-    dynamic-opacity = false;
-  };
+  # Ghostty, the terminal: always dark whatever the wallpaper, with bright
+  # accent colours, see-through (stylix.opacity.terminal in
+  # ../../modules/nixos/stylix.nix) and the wallpaper blurred behind it.
+  # In ghostty.nix.
+  imports = [ ./ghostty.nix ];
 
   # GNOME Shell already has the Stylix colours built in (stylix.nix). The
   # extra copy Stylix would load per user, through the User Themes

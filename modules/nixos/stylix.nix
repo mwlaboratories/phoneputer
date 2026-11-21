@@ -66,8 +66,9 @@ in
     # Dark or light theme.
     polarity = "dark";
 
-    # The terminal lets the wallpaper show through a little (1 = solid).
-    opacity.terminal = 0.75;
+    # The terminal lets the wallpaper show through (1 = solid). 0.6 suits
+    # the terminal's dark background (home.nix) with the blur behind it.
+    opacity.terminal = 0.6;
 
     # Stylix themes GNOME Shell (top bar, menus, login screen) by building
     # the colours into it, so a new wallpaper rebuilds GNOME Shell: about a
