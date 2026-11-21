@@ -108,7 +108,7 @@ export default class OskVoiceExtension extends Extension {
                     x_align: Clutter.ActorAlign.CENTER,
                     y_align: Clutter.ActorAlign.CENTER,
                 }),
-                style: 'width: 56px; padding: 0;',
+                style: 'width: 56px; padding: 0; margin: 4px; border-radius: 12px;',
                 y_expand: true,
                 y_align: Clutter.ActorAlign.FILL,
             });
@@ -239,8 +239,14 @@ export default class OskVoiceExtension extends Extension {
         const recording = this._isRecording();
         const hasText = !!(text || partial);
 
+        // Listening: the mic looks like a pressed key, in the accent colour
+        // the keyboard's own pressed keys light up in (Stylix's base0D, see
+        // modules/nixos/stylix.nix), instead of a loud red.
         this._mic.checked = recording;
-        this._mic.child.style = recording ? 'color: #e01b24;' : null;
+        if (recording)
+            this._mic.add_style_class_name('keyboard-key');
+        else
+            this._mic.remove_style_class_name('keyboard-key');
         this._mic.reactive = state !== 'finishing';
 
         // After an error the words heard so far stay, so you can still
