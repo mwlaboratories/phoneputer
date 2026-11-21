@@ -42,6 +42,14 @@ in
   programs.brave = {
     enable = true;
     commandLineArgs = [ "--ozone-platform=wayland" ];
+    extensions = [
+      # enhanced-h264ify: YouTube sends H.264 instead of AV1 or VP9. The
+      # phone has no AV1 hardware, and Brave decodes video in software
+      # here; H.264 is by far the lightest of the three, so playback is
+      # smoother and uses less battery. Max 1080p. Its icon sets which
+      # codecs to block.
+      { id = "omkfmpieigblcllmkgbflkikinpkodlk"; }
+    ];
   };
 
   # Ghostty, the terminal: always dark whatever the wallpaper, with bright
