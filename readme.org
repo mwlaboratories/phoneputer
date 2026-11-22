@@ -231,7 +231,13 @@ fastboot reboot
 
 * 4G / LTE
 
-Insert a SIM card and reboot. Mobile data appears in GNOME Settings → Mobile Network. To check the modem from a terminal:
+To use a SIM card:
+
+1. Put the SIM card in and restart the phone. The phone only looks for a SIM card when it starts, so a card put in while it's on isn't seen until the restart.
+2. If the card has a PIN code, GNOME asks for it. Tap the field and the keyboard comes up by itself. You have three tries; after that you need the card's PUK code.
+3. Calls and SMS work from then on (the Calls and Chatty apps). Mobile data appears in GNOME Settings → Mobile Network.
+
+To check the modem from a terminal:
 
 #+begin_src sh
 mmcli -L
