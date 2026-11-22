@@ -14,10 +14,12 @@
 // symbols. Keys with an action (shift, backspace, ?123, hide, ...) or a
 // keyval (enter, space, arrows) don't, nor do keys showing an icon.
 //
-// The bubble is made once: a box styled like a key (the 'keyboard-key'
-// class, so it follows the theme) with the letter centred in a bigger
-// font, shown above the keyboard. It isn't reactive, so touches go
-// through it.
+// The bubble is made once and shown above the keyboard. It isn't
+// reactive, so touches go through it. Its look follows Android's open
+// keyboard (AOSP LatinIME, which Gboard grew out of): about 1.3 times as
+// tall as a key, the letter 82% of the key's height, right above the
+// key. It takes the key's own colours but fully opaque: the theme's keys
+// are see-through, and a see-through bubble over the app looked muddy.
 
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
@@ -30,9 +32,10 @@ const proto = KeyboardUI.Keyboard.prototype;
 
 // Bubble size relative to the key, and the gap between bubble and key, in
 // GNOME's (logical) pixels.
-const WIDTH = 1.25;
+const WIDTH = 1.2;
 const HEIGHT = 1.3;
-const GAP = 6;
+const TEXT = 0.82; // letter size relative to the key's height
+const GAP = 2;
 
 export default class OskKeyPopupExtension extends Extension {
     enable() {
@@ -46,9 +49,6 @@ export default class OskKeyPopupExtension extends Extension {
             y_align: Clutter.ActorAlign.CENTER,
         });
         this._bubble = new St.Bin({
-            style_class: 'keyboard-key',
-            style: 'font-size: 2.6em; font-weight: normal; ' +
-                'box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.45);',
             child: this._label,
             reactive: false,
             visible: false,
@@ -120,10 +120,35 @@ export default class OskKeyPopupExtension extends Extension {
         const bx = Math.min(Math.max(Math.round(x + (w - bw) / 2), 0), stageWidth - bw);
         this._owner = button;
         this._label.text = button.label;
+        this._bubble.style = this._style(button, h);
         this._bubble.set_size(bw, bh);
         this._bubble.set_position(bx, Math.max(Math.round(y - GAP - bh), 0));
         this._bubble.show();
         this._bubble.get_parent()?.set_child_above_sibling(this._bubble, null);
+    }
+
+    // The key's colours, made opaque: its background laid over the
+    // keyboard's, and that over black if the keyboard is see-through too.
+    _style(button, keyHeight) {
+        const node = button.get_theme_node();
+        const over = (top, below) => {
+            const a = top.alpha / 255;
+            return {
+                red: Math.round(top.red * a + below.red * (1 - a)),
+                green: Math.round(top.green * a + below.green * (1 - a)),
+                blue: Math.round(top.blue * a + below.blue * (1 - a)),
+            };
+        };
+        const black = {red: 0, green: 0, blue: 0};
+        const keyboard = Main.keyboard.keyboardActor?.get_theme_node();
+        const base = keyboard ? over(keyboard.get_background_color(), black) : black;
+        const bg = over(node.get_background_color(), base);
+        const fg = node.get_foreground_color();
+        const radius = node.get_border_radius(St.Corner.TOPLEFT);
+        return `background-color: rgb(${bg.red}, ${bg.green}, ${bg.blue}); ` +
+            `color: rgb(${fg.red}, ${fg.green}, ${fg.blue}); ` +
+            `border-radius: ${radius}px; ` +
+            `font-size: ${Math.round(keyHeight * TEXT)}px;`;
     }
 
     _hide() {
