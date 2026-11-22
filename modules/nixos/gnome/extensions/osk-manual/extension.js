@@ -7,12 +7,21 @@
 // while a gesture is in progress. So open() is only let through then;
 // closing works as before.
 //
+// One exception: GNOME's own system dialogs (the SIM PIN, a Wi-Fi
+// password, an administrator password). While one is open it takes all
+// input, so the swipe never arrives and you could not type. There the
+// keyboard opens by itself when the text field gets focus, as in stock
+// GNOME.
+//
 // The keyboard also never pushes the app up. GNOME moves the window up by
 // the keyboard's height when the text cursor would end up behind the
 // keyboard (setCursorLocation()). On a phone that slid Signal half off
 // the screen, and only some of the time. Windows now stay put; the
 // keyboard lies over them.
 
+import Shell from 'gi://Shell';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as KeyboardUI from 'resource:///org/gnome/shell/ui/keyboard.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -22,7 +31,8 @@ export default class OskManualExtension extends Extension {
     enable() {
         const origOpen = this._origOpen = proto.open;
         proto.open = function (...args) {
-            if (!this._gestureInProgress)
+            if (!this._gestureInProgress &&
+                !(Main.actionMode & Shell.ActionMode.SYSTEM_MODAL))
                 return;
             origOpen.apply(this, args);
         };
