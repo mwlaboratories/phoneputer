@@ -65,6 +65,16 @@
   services.openssh.settings.PermitRootLogin = "yes";
   services.openssh.settings.PasswordAuthentication = true;
 
+  # Recovery link over the USB-C cable: plugged into a PC, the phone shows up
+  # there as a small network card; `ssh root@172.16.42.1` (plus a serial
+  # console, /dev/ttyACM0 on the PC). It runs on the main processor, so it is
+  # meant to stay up when the modem (and with it Wi-Fi) restarts. The PC gets
+  # an address only: no default route, no DNS.
+  mobile.usb.stage-2.enable = true;
+  # The cable brings in systemd-networkd, which would switch systemd-resolved
+  # on and send the phone's DNS through it. Keep DNS as NetworkManager has it.
+  services.resolved.enable = false;
+
   # Rebuild on the phone itself: `nh os switch` in a terminal, from the
   # checkout in ~/phoneputer (git clone https://github.com/mwlaboratories/phoneputer).
   # The phone builds faster than a PC can through aarch64 emulation. Only

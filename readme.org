@@ -165,6 +165,13 @@ ssh-copy-id nix@$PHONE
 ssh-copy-id root@$PHONE
 #+end_src
 
+The USB-C cable is a second way in, for when WiFi is down (for instance while the modem restarts: the WiFi firmware runs on it). Plugged into a PC, the phone shows up there as a small network card and hands it an address, but no default route and no DNS, so the PC's own internet stays as it is:
+
+#+begin_src sh
+ssh root@172.16.42.1
+screen /dev/ttyACM0   # serial console over the same cable
+#+end_src
+
 The USB-C port works like a laptop's: plug in a keyboard or other USB device and the phone acts as host and powers it; plug it into a charger or PC and it charges. The port is USB 2.0 and has no video output; that's the OnePlus 6 hardware.
 
 * Changing the Phone
