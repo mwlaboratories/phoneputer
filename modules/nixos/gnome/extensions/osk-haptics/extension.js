@@ -21,7 +21,8 @@ export default class OskHapticsExtension extends Extension {
         // 'captured-event' runs before the keyboard sees the event, for
         // every event aimed at anything inside the keyboard box.
         this._handler = box.connect('captured-event', (_actor, event) => {
-            if (this._isPress(event) && this._onKey(event.get_source(), box))
+            if (this._isPress(event) &&
+                this._onKey(global.stage.get_event_actor(event), box))
                 this._buzz();
             return Clutter.EVENT_PROPAGATE;
         });
@@ -46,6 +47,10 @@ export default class OskHapticsExtension extends Extension {
         }
     }
 
+    // The touched actor comes from global.stage.get_event_actor(): in GNOME
+    // 51 event.get_source() is null here, so no key was ever found and
+    // the keyboard stayed silent.
+    //
     // Whether the touched actor is a key, or something inside one (its
     // label or icon). In GNOME Shell's ui/keyboard.js every key is an
     // St.Button with the style class 'keyboard-key'. The gaps between keys
