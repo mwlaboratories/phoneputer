@@ -267,7 +267,7 @@ It's read each time you tap the microphone, so no rebuild is needed; without it 
 sudo waydroid init
 #+end_src
 
-Log out and back in once, then open Waydroid from the app grid. GNOME reads the system's list of apps at login, so a session that was already running when Waydroid was turned on shows no Waydroid icon. (Checked on the phone on 2026-11-22: =Waydroid.desktop= was installed and marked for phones, but the GNOME session, started hours before, didn't know it.) Once Android has run, its own apps get icons in the app grid as well.
+Open Waydroid from the app grid. If you enabled it during an existing GNOME session and the icon is missing, log out and back in to refresh the app list. In the live trial, the running shell had not picked up the newly installed launcher. Adding the same =Waydroid.desktop= entry to the user's applications directory made the icon visible without logging out. Once Android has run, its own apps get icons in the app grid as well.
 
 If the Waydroid icon is missing, start Android's screen from a terminal on the phone instead (tested 2026-11-22):
 
@@ -277,12 +277,12 @@ waydroid show-full-ui
 
 This uses NixOS' own Waydroid module, which brings the container service and the permission it needs on the system message bus (D-Bus). =modules/nixos/waydroid.nix= narrows what Android can reach on the phone: an address (DHCP) and name lookups (DNS), not SSH or anything else that listens. Android reaches the internet through the phone's connection, like any app, and nothing from outside can open a connection into it. The phone also keeps out of routing between Wi-Fi, mobile data and USB, which Waydroid would otherwise switch on. The kernel side (Rust Binder) is in the Mobile NixOS fork.
 
-What has been tested (2026-11-22): Android booted in 43 s, got an address and reached the internet, and its screen came up with =waydroid show-full-ui=. Not tested yet:
+On 2026-11-22, Android booted in 43 s, got an address and reached the internet. The Android screen worked with =waydroid show-full-ui=, and the Waydroid icon was visible after the launcher refresh. Still to verify:
 
 1. Opening Waydroid from the app grid after a fresh login.
 2. Sound from Android apps.
 3. Whether Android's apps and data are still there after the phone reboots.
-4. Over SSH, =sudo waydroid shell -- nc -z -w 3 192.168.240.1 22; echo $?= prints 1: Android can't reach the phone's SSH.
+4. While Android is running, =sudo waydroid shell -- sh -c 'nc -z -w 3 192.168.240.1 22; echo $?'= prints =1=, confirming that Android cannot connect to the phone's SSH server.
 5. After =waydroid session stop=, calls, SMS and mobile data still work.
 
 * How It Works
