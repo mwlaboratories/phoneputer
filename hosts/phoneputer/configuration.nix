@@ -14,7 +14,12 @@
     ../../modules/nixos/gnome
     ../../modules/nixos/nvim.nix
     ../../modules/nixos/power.nix
+    ../../modules/nixos/waydroid.nix
   ];
+
+  # Android apps (Waydroid), off by default. Uncomment, rebuild, then run
+  # `sudo waydroid init` once; see ../../modules/nixos/waydroid.nix.
+  # virtualisation.waydroid.enable = true;
 
   networking.hostName = "phoneputer";
 

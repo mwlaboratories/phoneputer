@@ -42,7 +42,7 @@ Measured on 2026-11-20 with NixOS 26.11 (nixos-unstable) and kernel 7.4.0-rc3:
 | Calls / SMS           | SMS sending and receiving work (Chatty); calls ring and connect both ways (over 2G), call audio being fixed |
 | Sensors               | Light, compass, proximity and accelerometer work, also after reboot |
 | Screen rotation       | Works, including on the login screen                                |
-| Waydroid              | Doesn't work: Linux 7.4 dropped the C binder (needs the Rust binder) |
+| Waydroid              | Off by default; see [[*Android apps (Waydroid)][Android apps]]. Android's screen works (tested 2026-11-22, started from a terminal); sound and keeping Android's data across reboots are untested |
 | Screen off / sleep    | The phone never sleeps: the power key turns the screen off and on, hold it to log out |
 | Alert slider          | Silent, vibrate or ring, like on Android (silent also turns on Do Not Disturb) |
 | Fingerprint sensor    | Not yet: it runs inside Qualcomm's TrustZone; other Snapdragon phones have recently got enrolling and verifying working that way |
@@ -259,6 +259,32 @@ install -m 600 /dev/stdin ~/.config/soniox/api-key
 
 It's read each time you tap the microphone, so no rebuild is needed; without it the bar tells you it's missing. The key stays out of this repository and the Nix store. Set the languages you speak in =modules/nixos/gnome/dictation.nix= (=SONIOX_LANGUAGE_HINTS=). After the rebuild that brings dictation in, log out and back in once: GNOME only loads new extensions at login.
 
+* Android apps (Waydroid)
+
+[[https://waydro.id][Waydroid]] runs Android (LineageOS 20, without Google apps) in a container next to GNOME. It is off by default: Android takes about 2.3 GB once set up, and Waydroid starts a background service at boot. To turn it on, uncomment =virtualisation.waydroid.enable = true;= in =hosts/phoneputer/configuration.nix=, rebuild, and download the Android images once (about 1 GB):
+
+#+begin_src sh
+sudo waydroid init
+#+end_src
+
+Log out and back in once, then open Waydroid from the app grid. GNOME reads the system's list of apps at login, so a session that was already running when Waydroid was turned on shows no Waydroid icon. (Checked on the phone on 2026-11-22: =Waydroid.desktop= was installed and marked for phones, but the GNOME session, started hours before, didn't know it.) Once Android has run, its own apps get icons in the app grid as well.
+
+If the Waydroid icon is missing, start Android's screen from a terminal on the phone instead (tested 2026-11-22):
+
+#+begin_src sh
+waydroid show-full-ui
+#+end_src
+
+This uses NixOS' own Waydroid module, which brings the container service and the permission it needs on the system message bus (D-Bus). =modules/nixos/waydroid.nix= narrows what Android can reach on the phone: an address (DHCP) and name lookups (DNS), not SSH or anything else that listens. Android reaches the internet through the phone's connection, like any app, and nothing from outside can open a connection into it. The phone also keeps out of routing between Wi-Fi, mobile data and USB, which Waydroid would otherwise switch on. The kernel side (Rust Binder) is in the Mobile NixOS fork.
+
+What has been tested (2026-11-22): Android booted in 43 s, got an address and reached the internet, and its screen came up with =waydroid show-full-ui=. Not tested yet:
+
+1. Opening Waydroid from the app grid after a fresh login.
+2. Sound from Android apps.
+3. Whether Android's apps and data are still there after the phone reboots.
+4. Over SSH, =sudo waydroid shell -- nc -z -w 3 192.168.240.1 22; echo $?= prints 1: Android can't reach the phone's SSH.
+5. After =waydroid session stop=, calls, SMS and mobile data still work.
+
 * How It Works
 
 ** This repository
@@ -278,6 +304,7 @@ modules/nixos/
   phone.nix                   mobile data, calls and SMS
   stylix.nix                  colours and fonts from the wallpaper, also in GNOME Shell and the login screen
   power.nix                   power modes (TuneD)
+  waydroid.nix                firewall limits for Android apps (Waydroid), when you turn it on
   nvim.nix                    Neovim
 #+end_example
 
