@@ -292,6 +292,27 @@ On 2026-11-22, Android booted in 43 s, got an address and reached the internet. 
 4. While Android is running, =sudo waydroid shell -- sh -c 'nc -z -w 3 192.168.240.1 22; echo $?'= prints =1=, confirming that Android cannot connect to the phone's SSH server.
 5. After =waydroid session stop=, calls, SMS and mobile data still work.
 
+* Plans
+
+** Even Realities G2 glasses (Damage)
+
+Not started. The goal is to drive Even Realities G2 smart glasses from this phone with [[https://github.com/expectbugs/damage-wm][damage-wm]], a window manager that draws straight into the glasses' framebuffer. Its =desktop= module talks to the glasses over BlueZ (=--transport ble=), so it should run on this phone as it is, without Android or Waydroid.
+
+The glasses need Damage's own custom firmware ([[https://github.com/expectbugs/damage-cfw][damage-cfw]]), not Faceclaw's, which they run now. Going back to stock firmware first is easy.
+
+Open questions, to ask the developer (on Reddit):
+
+1. Are the firmware builds C1–C3 published? The public =damage-cfw= stops at Phase 2 (2026-09-16), and current damage-wm may need the newer features.
+2. damage-cfw is based on firmware 2.2.6.10. Is going from stock (2.2.9) down to that safe, and with which flasher?
+3. Can =desktop --transport ble= drive the glasses for daily use, or is it only meant as the author's at-the-desk fallback?
+4. Are there known problems with BlueZ on ARM64, such as the 7.5 ms connection interval or 2M PHY?
+
+Steps, in order:
+
+1. Build =desktop= on the phone and run =--selfcheck= and =--snapshot=. Neither needs the glasses.
+2. With the answers, flash stock, then damage-cfw: one lens at a time, left first (=FORK.md= §7 in damage-wm).
+3. Drive the glasses from the phone, starting with simple windows such as Reader, Tmux and Files.
+
 * How It Works
 
 ** This repository
